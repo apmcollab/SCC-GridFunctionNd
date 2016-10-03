@@ -58,11 +58,16 @@
 #
 #############################################################################
 */
+
+#include "SCC_GridFunction1d.h"
+#include "SCC_GridFunction2d.h"
+#include "SCC_GridFunction3d.h"
+
+
 #ifndef _SCC_GridFunctionNdSkin_
 #define _SCC_GridFunctionNdSkin_
 
 
-//
 namespace SCC
 {
 
