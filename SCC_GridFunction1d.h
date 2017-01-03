@@ -192,7 +192,7 @@ const DoubleVector1d* getValuesPointer() const
 //###################################################################
 
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
     double&  Values(long i1)
     {
     assert(boundsCheck(i1, 0, index1Size-1,1));
