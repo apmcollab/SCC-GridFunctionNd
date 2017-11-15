@@ -22,7 +22,7 @@
 /*
 #############################################################################
 #
-# Copyright  2015 Chris Anderson
+# Copyright  2015-16 Chris Anderson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the Lesser GNU General Public License as published by
@@ -192,7 +192,7 @@ const DoubleVector1d* getValuesPointer() const
 //###################################################################
 
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
     double&  Values(long i1)
     {
     assert(boundsCheck(i1, 0, index1Size-1,1));
