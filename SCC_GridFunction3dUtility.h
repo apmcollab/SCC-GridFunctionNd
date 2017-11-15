@@ -370,6 +370,9 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile)
 	gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax,zPt-1,zMin,zMax);
 	dataSize = xPt*yPt*zPt;
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
+
+	// Statement to suppress set but not used warnings.
+	if(rValue){};
 }
 
 
@@ -384,6 +387,9 @@ void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile)
 	long zPt = gF.getZpanelCount() + 1;
 	dataSize = xPt*yPt*zPt;
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
+
+    // Statement to suppress set but not used warnings.
+	if(rValue){};
 }
 
 
