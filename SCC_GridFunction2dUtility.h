@@ -252,7 +252,7 @@ void outputDataToVTKfile(const GridFunction2d& gridFun, const string& fileName, 
     // output the regular positions
     //
 	fprintf(dataFile, "# vtk DataFile Version 2.0\n");
-	fprintf(dataFile, "Function \n");
+	fprintf(dataFile, "%s \n",dataLabel.c_str());
     fprintf(dataFile, "ASCII\n");
 
     fprintf(dataFile, "DATASET RECTILINEAR_GRID\n");

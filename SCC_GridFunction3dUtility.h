@@ -107,7 +107,7 @@ void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, 
     // output the regular positions
     //
 	fprintf(dataFile, "# vtk DataFile Version 2.0\n");
-    fprintf(dataFile, "FUNCTION \n");
+    fprintf(dataFile, "%s \n",dataLabel.c_str());
     fprintf(dataFile, "ASCII\n");
 
     fprintf(dataFile, "DATASET RECTILINEAR_GRID\n");
@@ -241,7 +241,7 @@ string scalingCoord, double scalingValue)
     // output the regular positions
     //
 	fprintf(dataFile, "# vtk DataFile Version 2.0\n");
-    fprintf(dataFile, "FUNCTION \n");
+    fprintf(dataFile, "%s \n",dataLabel.c_str());
     fprintf(dataFile, "ASCII\n");
 
     fprintf(dataFile, "DATASET RECTILINEAR_GRID\n");
