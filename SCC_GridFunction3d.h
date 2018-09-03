@@ -4,8 +4,6 @@
  *  Created on: Jun 27, 2015
  *      Author: anderson
  *
- *
- *
  * Decisions: Extending DoubleVector3D so that move semantics can be incorporated into
  * the underlying vector operations on grid values without having to duplicate all
  * member functions utilizing move semantics.
@@ -15,6 +13,8 @@
  *
  * Revised: Nov. 26, 2015 
  *          Jan. 26, 2016
+ *
+ *  Release : 18.09.03
  */
 
 /*

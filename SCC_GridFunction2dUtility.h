@@ -1,5 +1,20 @@
 
 /*
+ * SCC_GridFunction2dUtility.h
+ *
+ *  Created on: Jun 28, 2015
+ *      Author: anderson
+ *
+ *
+ * Utility routines - mostly routines for file input and output
+ * of GridFunction2d instances.
+ *
+ * Modifications: Jun 28, 2015
+ *               Sept. 4, 2018
+ *
+ *  Release : 18.09.03
+ */
+/*
 #############################################################################
 #
 # Copyright  2015 Chris Anderson
@@ -37,12 +52,17 @@ using namespace std;
 // macro returns a non-zero value if the open fails (e.g. a non-zero error code).
 //
 #ifndef _MSC_VER
+#ifndef OPENFILE
 #define OPENFILE(dataFile,filename,mode) ((dataFile = fopen(filename,  mode)) == NULL)
+#endif
 #else
+#ifndef OPENFILE
 #define OPENFILE(dataFile,fileName,mode) ((fopen_s(&dataFile,fileName, mode)) != 0)
 #pragma warning(push)
 #pragma warning(disable: 4996)
 #endif
+#endif
+
 
 #include "../GridFunctionNd/SCC_GridFunction2d.h"
 #include "../DoubleVectorNd/SCC_DoubleVector2d.h"
@@ -79,9 +99,19 @@ void addToValues(GridFunction2d& gFun, std::function<double(double,double)>& F)
     gFun.Values(i,j) += F(x,y);
     }}
 }
-
-
-void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& formatString = "%15.10e")
+//
+// Gnuplot output data structure
+//
+// # xPanels xMin xMax yPanels yMin yMax
+// x_0 y_0       f(x_0, y_0)
+// x_0 y_1       f(x_0, y_1)
+//          ***
+// x_0 y_yPanels f(x_0, y_yPanels)
+//
+// x_1 y_0       f(x_1, y_0)
+// x_1 y_1       f(x_1, y_1))
+//
+void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& formatString = "%20.15e")
 {
     ostringstream s;
     s.str("");
@@ -89,41 +119,38 @@ void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& f
 //
 //  Open and then write to a file
 //
-    FILE* dataFile;
-
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    SCC::DoubleVector2d* V = gF.getValuesPointer();
-
-    double hx     = gF.getHx();
-    long mPanel    = gF.getXpanelCount();
+    long xPanel   = gF.getXpanelCount();
     double xMin   = gF.getXmin();
+    double xMax   = gF.getXmax();
 
-    double hy     = gF.getHy();
-    long nPanel   = gF.getYpanelCount();
+    long yPanel   = gF.getYpanelCount();
     double yMin   = gF.getYmin();
+    double yMax   = gF.getYmax();
 
     long i; long j;
 
-    fprintf(dataFile,"# %ld %ld\n",mPanel+1, nPanel+1);
 
-    double x;
-    double y;
+    fprintf(dataFile,"# %ld %20.15e %20.15e  %ld  %20.15e %20.15e \n",
+            xPanel,xMin,xMax,yPanel, yMin, yMax);
 
-    for(i = 0;  i <= nPanel; i++)
+    double x;  double y;
+
+    double hx = (xMax-xMin)/(double)(xPanel);
+    double hy = (yMax-yMin)/(double)(yPanel);
+
+    for(i = 0; i <= xPanel; i++)
     {
-    //for(j = mPanel+1; j >= 1;   j--)
-   // {
-   // x = xMin + double(mPanel+ 1 - j)*hx;
-	for(j = 0; j <= mPanel; j++)
+    x = xMin + double(i)*hx;
+	for(j = 0; j <= yPanel; j++)
 	{
-	x = xMin + double(j)*hx;
-    y = yMin + double(i)*hy;
-    fprintf(dataFile,(s.str()).c_str(),x,y,V->operator()(j,i));
+    y = yMin + double(j)*hy;
+    fprintf(dataFile,(s.str()).c_str(),x,y,gF(i,j));
     }
     fprintf(dataFile,"\n");
     }
@@ -131,88 +158,410 @@ void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& f
     fclose(dataFile);
 }
 
-//
-// In the case that the input GridFun2d is a null instance as indicated by
-// mPanel=nPanel=0, this routine initializes gF based upon data contained in
-// fileName.
 
- void inputFromGNUplot(GridFunction2d& gF, const string& fileName, int& noFileFlag)
+ void inputFromGNUplot(GridFunction2d& gF, const string& fileName)
 {
-
-	//
-	//  Open input file
-	//
-	// ifstream dataFile(fileName);
-
+//
+//  Open and then read from file
+//
     FILE* dataFile = 0;
-	noFileFlag     = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "r" ))
     {
-	  noFileFlag = 1;
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    char* strTmp = new char[1024];
-    long mPtmp;
-    long nPtmp;
+    size_t rValue = 0;
 
-    long i;      long j;
-    long mPanel; long nPanel;
-    double x;    double y;
+    char poundChar;
+
+    long i;       long j;
+    long xPanels; long yPanels;
 
     double xMin; double xMax;
     double yMin; double yMax;
-    double valTmp;
 
-    if((gF.getXpanelCount() == 0)&&(gF.getYpanelCount() == 0))
+    rValue = fscanf(dataFile,"%c", &poundChar)  != 1 ? 1 : rValue;   // remove leading #
+    rValue = fscanf(dataFile,"%ld",&xPanels)    != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&xMin)       != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&xMax)       != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%ld",&yPanels)    != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&yMin)       != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&yMax)       != 1 ? 1 : rValue;
+
+    rValue = (xMax < xMin) ? 1 : rValue;
+    rValue = (yMax < yMin) ? 1 : rValue;
+
+    rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
+
+    if(rValue == 1)
     {
+    throw std::runtime_error("\nSCC::GridFunction2d could not be initialized from gnuplot data file " + fileName + " \n");
+    }
 
-    // Extract panel count
 
-    fscanf(dataFile,"%s",strTmp);
-    fscanf(dataFile,"%ld",&mPanel);
-    fscanf(dataFile,"%ld",&nPanel);
-    mPanel -= 1;
-    nPanel -= 1;
-    //
-    //  Capture bounds
-    //
-    //	x = xMin + double(j)*hx;
-    //  y = yMin + double(i)*hy;
+    gF.initialize(xPanels,xMin,xMax,yPanels, yMin, yMax);
 
-    for(i = 0;  i <= nPanel; i++)
+    double x; double y;
+    for(i = 0;  i <= xPanels; i++)
     {
-	for(j = 0;  j <= mPanel; j++)
+	for(j = 0; j  <= yPanels; j++)
 	{
-	fscanf(dataFile,"%lf %lf %lf",&x,&y,&valTmp);
-	if(j == 0)      xMin = x;
-    if(j == nPanel) xMax = x;
+	rValue = fscanf(dataFile,"%lf %lf %lf",&x,&y,&gF(i,j)) != 3 ? 1 : rValue;
     }
-	if(i == 0)      yMin = y;
-	if(i == mPanel) yMax = y;
-    }
-    gF.initialize(mPanel,xMin,xMax,nPanel,yMin,yMax);
-    rewind(dataFile);
     }
 
-    SCC::DoubleVector2d* V;
-    V = gF.getValuesPointer();
-
-    mPanel = gF.getXpanelCount();
-    nPanel = gF.getYpanelCount();
-
-    fscanf(dataFile,"%s",strTmp);
-    fscanf(dataFile,"%ld",&mPtmp);
-    fscanf(dataFile,"%ld",&nPtmp);
-
-    for(i = 0;  i <= nPanel; i++)
+    if(rValue == 1)
     {
-	for(j = 0; j <= mPanel; j++)
-	{
-	fscanf(dataFile,"%lf %lf %lf",&x,&y,&(V->operator()(j,i)));
+    throw std::runtime_error("\nSCC::GridFunction2d could not be initialized from gnuplot data file " + fileName + " \n");
     }
+
+    fclose(dataFile);
+}
+
+
+
+void outputDataToVTKfile(const GridFunction2d& gridFun, const string& fileName, const string& dataLabel)
+{
+	FILE* dataFile;
+
+    double a  = gridFun.getXmin();
+    double c  = gridFun.getYmin();
+	double e  = 0.0;
+
+    double hx = gridFun.getHx();
+    double hy = gridFun.getHy();
+	double hz = hx;
+	hz        = (hz < hy) ? hy : hz;
+
+    long mPt = gridFun.getXpanelCount() + 1;
+    long nPt = gridFun.getYpanelCount() + 1;
+	long pPt = 2;
+
+    long dataCount = mPt*nPt*pPt;
+
+    if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
+    {
+      printf( "The file %s could not be  opened\n",fileName.c_str());
+      exit(1);
     }
-    delete [] strTmp;
+
+    long i; long j; long k;
+    double xPos; double yPos; double zPos;
+    //
+    // output the regular positions
+    //
+	fprintf(dataFile, "# vtk DataFile Version 2.0\n");
+	fprintf(dataFile, "Function \n");
+    fprintf(dataFile, "ASCII\n");
+
+    fprintf(dataFile, "DATASET RECTILINEAR_GRID\n");
+    fprintf(dataFile, "DIMENSIONS %ld %ld %ld \n",mPt,nPt,pPt);
+    fprintf(dataFile, "X_COORDINATES %ld float \n",mPt);
+    for(i = 0; i < mPt; i++)
+    {
+    xPos = i*hx + a;
+    fprintf(dataFile, "%10.5e ",xPos);
+    }
+    fprintf(dataFile, "\n");
+    fprintf(dataFile, "Y_COORDINATES %ld float \n",nPt);
+    for(j = 0; j < nPt; j++)
+    {
+    yPos = j*hy + c;
+    fprintf(dataFile, "%10.5e ",yPos);
+    }
+    fprintf(dataFile, "\n");
+
+    fprintf(dataFile, "Z_COORDINATES %ld float \n",pPt);
+    for(k = 0; k < pPt; k++)
+    {
+    zPos = k*hz + e;
+    fprintf(dataFile, "%10.5e ",zPos);
+    }
+    fprintf(dataFile, "\n");
+
+    fprintf(dataFile, "POINT_DATA %ld\n",dataCount);
+    fprintf(dataFile, "SCALARS %s float\n",dataLabel.c_str());
+    fprintf(dataFile, "LOOKUP_TABLE default\n");
+    for(k = 0; k <  pPt; k++)
+    {
+    for(j = 0; j < nPt; j++)
+    {
+    for(i = 0; i < mPt; i++)
+    {
+    fprintf(dataFile, "%15.8e ",gridFun(i,j));
+    }
+    fprintf(dataFile, "\n");
+    }}
+
+    fclose(dataFile);
+
+}
+
+
+void outputToDataFile(const GridFunction2d& gF, const string& fileName, const string& formatString = "%20.15e")
+{
+//
+//  Create format string
+//
+    ostringstream s;
+    s.str("");
+    s << formatString << " ";
+//
+//  Open and then write to a file
+//
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    long xPt = gF.getXpanelCount() + 1;
+    long yPt = gF.getYpanelCount() + 1;
+
+    double xMin  = gF.getXmin();
+    double yMin  = gF.getYmin();
+
+    double xMax    = gF.getXmax();
+    double yMax    = gF.getYmax();
+
+    fprintf(dataFile,"%ld \n", xPt);
+	fprintf(dataFile,"%ld \n", yPt);
+
+
+    fprintf(dataFile,"%20.15e \n",xMin);
+	fprintf(dataFile,"%20.15e \n",xMax);
+	fprintf(dataFile,"%20.15e \n",yMin);
+	fprintf(dataFile,"%20.15e \n",yMax);
+
+    for(long i = 0; i < xPt; i++)
+    {
+    for(long j = 0; j < yPt; j++)
+    {
+    fprintf(dataFile, s.str().c_str(),gF(i,j));
+    }
+    fprintf(dataFile, "\n");
+    }
+
+
+    fclose(dataFile);
+}
+
+void inputFromDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
+{
+	size_t rValue = 0;
+
+    long xPt;
+    long yPt;
+
+    double xMin;
+    double yMin;
+
+    double xMax;
+    double yMax;
+
+    rValue = fscanf(dataFile,"%ld", &xPt) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%ld", &yPt) != 1 ? 1 : rValue;
+
+    rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (yPt <= 0) ? 1 : rValue;
+
+    rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&yMin) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&yMax) != 1 ? 1 : rValue;
+
+	rValue = (xMax < xMin) ? 1 : rValue;
+    rValue = (yMax < yMin) ? 1 : rValue;
+
+
+    gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax);
+
+    for(long i = 0; i < xPt; i++)
+    {
+	for(long j = 0; j < yPt; j++)
+    {
+    rValue = fscanf(dataFile,"%lf",&gF(i,j)) != 1 ? 1 : rValue;
+    }}
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction2d could not be initialized from file " + fileName + " \n");
+    }
+
+}
+
+void inputFromDataFile(GridFunction2d& gF, const string& fileName)
+{
+//
+//  Open input file
+//
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "r" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    inputFromDataFile(gF, dataFile,fileName);
+
+	fclose(dataFile);
+}
+
+void outputToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
+{
+    long dataSize;
+
+    std::int64_t Xpt64 = gF.getXpanelCount() + 1;
+    std::int64_t Ypt64 = gF.getYpanelCount() + 1;
+
+    double xMin  = gF.getXmin();
+	double xMax  = gF.getXmax();
+    double yMin  = gF.getYmin();
+    double yMax  = gF.getYmax();
+	//
+	//  Write out the grid structure information. Using std:int64
+	//  for integer values to avoid problems with machines with
+	//  alternate storage sizes for int's and long's
+	//
+
+    fwrite(&Xpt64,  sizeof(std::int64_t), 1, dataFile);
+	fwrite(&Ypt64,  sizeof(std::int64_t), 1, dataFile);
+
+	fwrite(&xMin,  sizeof(double), 1, dataFile);
+	fwrite(&xMax,  sizeof(double), 1, dataFile);
+	fwrite(&yMin,  sizeof(double), 1, dataFile);
+    fwrite(&yMax,  sizeof(double), 1, dataFile);
+
+//
+//  Write ot the function values
+//
+    dataSize = Xpt64*Ypt64;
+    fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
+}
+
+
+void inputFromBinaryDataFile(GridFunction2d& gF, const string& fileName)
+{
+
+//  Open input file for binary read
+
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "rb" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+	inputFromBinaryDataFile(gF,dataFile,fileName);
+
+    fclose(dataFile);
+}
+
+
+void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
+{
+	size_t rValue;
+    long dataSize;
+
+    long    xPt;    long yPt;
+    double xMin; double yMin;
+    double xMax; double yMax;
+
+	std::int64_t Xpt64;
+	std::int64_t Ypt64;
+
+
+	rValue = 0;
+
+	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&Ypt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+
+	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+
+	rValue = fread(&yMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&yMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+
+    rValue = (xMax < xMin) ? 1 : rValue;
+    rValue = (yMax < yMin) ? 1 : rValue;
+
+	xPt = (long)Xpt64;
+	yPt = (long)Ypt64;
+
+	rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (yPt <= 0) ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction2d could not be initialized from file " + fileName + " \n");
+    }
+
+    // Initialize instance and then read in the data
+
+	gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax);
+	dataSize = xPt*yPt;
+
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction2d could not be initialized from file " + fileName + " \n");
+    }
+
+}
+
+
+void inputValuesFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
+{
+	size_t rValue = 0;
+
+    long dataSize;
+
+    long xPt = gF.getXpanelCount() + 1;
+    long yPt = gF.getYpanelCount() + 1;
+
+    rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (yPt <= 0) ? 1 : rValue;
+
+	dataSize = xPt*yPt;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nValues from SCC::GridFunction2d could not be read from file " + fileName + " \n");
+    }
+}
+
+
+void appendValuesToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
+{
+
+	long dataSize;
+    long xPt = gF.getXpanelCount() + 1;
+    long yPt = gF.getYpanelCount() + 1;
+//
+//  Write ot the function values
+//
+    dataSize = xPt*yPt;
+    fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
+}
+
+//
+// This routine opens up a new file and write GridFunction2d structure and data
+// and then closes the file
+//
+void outputToBinaryDataFile(const GridFunction2d& gF, const string& fileName)
+{
+//
+//  Open and then write to a file (remember to use the b mode to specify binary!!!!)
+//
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "wb" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    outputToBinaryDataFile(gF, dataFile);
+
     fclose(dataFile);
 }
 

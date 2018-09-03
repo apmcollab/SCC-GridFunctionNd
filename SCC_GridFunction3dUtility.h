@@ -1,3 +1,21 @@
+
+/*
+ * SCC_GridFunction3dUtility.h
+ *
+ *  Created on: Jun 28, 2015
+ *      Author: anderson
+ *
+ *
+ * Utility routines - mostly routines for file input and output
+ * of GridFunction3d instances.
+ *
+ * Modifications: Jun 28, 2015
+ *               Sept. 4, 2018
+ *
+ *  Release : 18.09.03
+*/
+
+
 /*
 #############################################################################
 #
@@ -18,6 +36,7 @@
 #
 #############################################################################
 */
+
 #ifndef _SCC_GridFunction3dUtility_
 #define _SCC_GridFunction3dUtility_
 #include <iostream>
@@ -37,11 +56,15 @@ using namespace std;
 // macro returns a non-zero value if the open fails (e.g. a non-zero error code).
 //
 #ifndef _MSC_VER
+#ifndef OPENFILE
 #define OPENFILE(dataFile,filename,mode) ((dataFile = fopen(filename,  mode)) == NULL)
+#endif
 #else
+#ifndef OPENFILE
 #define OPENFILE(dataFile,fileName,mode) ((fopen_s(&dataFile,fileName, mode)) != 0)
 #pragma warning(push)
 #pragma warning(disable: 4996)
+#endif
 #endif
 
 
@@ -55,22 +78,18 @@ class  GridFunction3dUtility
 {
 public :
 
-//
-// If xScalingFactor > 0 then the x-direction (vertical) is scaled so that the
-// the extent of the x-coordinates span a distance of xScalingFactor times the
-// maximal transverse coordinate span. Typical factors for this are .25, .3, etc
-// enough to give an idea that the vertical layer is thin with respect to the
-// transverse size, but large enough so that it is easy to visualize in 3D.
-//
-//
-void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel,
-double xScalingFactor = -1.0)
-{
-	FILE* dataFile;
 
-    double a  = gridFun.getXmin();  double b  = gridFun.getXmax();
-    double c  = gridFun.getYmin();  double d  = gridFun.getYmax();
-	double e  = gridFun.getZmin();  double f  = gridFun.getZmax();
+void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel)
+{
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    double a  = gridFun.getXmin();
+    double c  = gridFun.getYmin();
+	double e  = gridFun.getZmin();
 
     double hx = gridFun.getHx();
     double hy = gridFun.getHy();
@@ -82,30 +101,13 @@ double xScalingFactor = -1.0)
 
     long dataCount = mPt*nPt*pPt;
 
-    if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
-    {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      exit(1);
-    }
-
-    double hxScaling = 1.0;
-    double transverseSizeMax;
-
-    if(xScalingFactor > 0.0)
-    {
-    transverseSizeMax = f-e;
-    transverseSizeMax = (transverseSizeMax > (d-c)) ? transverseSizeMax : (d-c);
-
-    hxScaling  = (xScalingFactor*transverseSizeMax)/(b-a);
-    }
-
     long i; long j; long k;
     double xPos; double yPos; double zPos;
     //
     // output the regular positions
     //
 	fprintf(dataFile, "# vtk DataFile Version 2.0\n");
-    fprintf(dataFile, "Phi Sample \n");
+    fprintf(dataFile, "FUNCTION \n");
     fprintf(dataFile, "ASCII\n");
 
     fprintf(dataFile, "DATASET RECTILINEAR_GRID\n");
@@ -113,7 +115,7 @@ double xScalingFactor = -1.0)
     fprintf(dataFile, "X_COORDINATES %ld float \n",mPt);
     for(i = 0; i < mPt; i++)
     {
-    xPos = i*hx*hxScaling + a*hxScaling;
+    xPos = i*hx + a;
     fprintf(dataFile, "%10.5e ",xPos);
     }
     fprintf(dataFile, "\n");
@@ -148,10 +150,125 @@ double xScalingFactor = -1.0)
     }}
 
     fclose(dataFile);
-
 }
 
-void outputToDataFile(const GridFunction3d& gF, const string& fileName, const string& formatString = "%15.10e")
+//
+// This scales the coordinate values of the scaling coordinate specified (one of "x", "y" or "z") so that
+// the coordinate extent is the scaling value times the largest size of the domain in the other coordinate
+// directions. This utility is added so that rectangular regions in which the specified coordinate is thin
+// with respect to the others can be viewed with the thin region expanded.
+//
+void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel,
+string scalingCoord, double scalingValue)
+{
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    double a  = gridFun.getXmin();  double b  = gridFun.getXmax();
+    double c  = gridFun.getYmin();  double d  = gridFun.getYmax();
+	double e  = gridFun.getZmin();  double f  = gridFun.getZmax();
+
+    double hx = gridFun.getHx();
+    double hy = gridFun.getHy();
+	double hz = gridFun.getHz();
+
+    double xScalingFactor = -1.0;
+    double yScalingFactor = -1.0;
+    double zScalingFactor = -1.0;
+
+    if((scalingCoord == "x") || (scalingCoord == "X")  ){xScalingFactor = scalingValue;}
+    if((scalingCoord == "y") || (scalingCoord == "Y")  ){yScalingFactor = scalingValue;}
+    if((scalingCoord == "z") || (scalingCoord == "Z")  ){zScalingFactor = scalingValue;}
+
+    double transverseSizeMax;
+
+    if(xScalingFactor > 0.0)
+    {
+    transverseSizeMax = d-c;
+    transverseSizeMax = (transverseSizeMax > (f-e)) ? transverseSizeMax : (f-e);
+    xScalingFactor = (xScalingFactor*transverseSizeMax)/(b-a);
+    }
+    else {xScalingFactor = 1.0;}
+
+    if(yScalingFactor > 0.0)
+    {
+    transverseSizeMax = b-a;
+    transverseSizeMax = (transverseSizeMax > (f-e)) ? transverseSizeMax : (f-e);
+    yScalingFactor = (yScalingFactor*transverseSizeMax)/(f-e);
+    }
+    else {yScalingFactor = 1.0;}
+
+
+    if(zScalingFactor > 0.0)
+    {
+    transverseSizeMax = b-a;
+    transverseSizeMax = (transverseSizeMax > (d-c)) ? transverseSizeMax : (d-c);
+    zScalingFactor = (zScalingFactor*transverseSizeMax)/(f-e);
+    }
+    else {zScalingFactor = 1.0;}
+
+
+    long mPt = gridFun.getXpanelCount() + 1;
+    long nPt = gridFun.getYpanelCount() + 1;
+	long pPt = gridFun.getZpanelCount() + 1;
+
+    long dataCount = mPt*nPt*pPt;
+
+    long i; long j; long k;
+    double xPos; double yPos; double zPos;
+    //
+    // output the regular positions
+    //
+	fprintf(dataFile, "# vtk DataFile Version 2.0\n");
+    fprintf(dataFile, "FUNCTION \n");
+    fprintf(dataFile, "ASCII\n");
+
+    fprintf(dataFile, "DATASET RECTILINEAR_GRID\n");
+    fprintf(dataFile, "DIMENSIONS %ld %ld %ld \n",mPt,nPt,pPt);
+    fprintf(dataFile, "X_COORDINATES %ld float \n",mPt);
+    for(i = 0; i < mPt; i++)
+    {
+    xPos = i*hx*xScalingFactor + a*xScalingFactor;
+    fprintf(dataFile, "%10.5e ",xPos);
+    }
+    fprintf(dataFile, "\n");
+    fprintf(dataFile, "Y_COORDINATES %ld float \n",nPt);
+    for(j = 0; j < nPt; j++)
+    {
+    yPos = j*hy*yScalingFactor + c*yScalingFactor;
+    fprintf(dataFile, "%10.5e ",yPos);
+    }
+    fprintf(dataFile, "\n");
+
+    fprintf(dataFile, "Z_COORDINATES %ld float \n",pPt);
+    for(k = 0; k < pPt; k++)
+    {
+    zPos = k*hz*zScalingFactor + e*zScalingFactor;
+    fprintf(dataFile, "%10.5e ",zPos);
+    }
+    fprintf(dataFile, "\n");
+
+    fprintf(dataFile, "POINT_DATA %ld\n",dataCount);
+    fprintf(dataFile, "SCALARS %s float\n",dataLabel.c_str());
+    fprintf(dataFile, "LOOKUP_TABLE default\n");
+    for(k = 0; k <  pPt; k++)
+    {
+    for(j = 0; j < nPt; j++)
+    {
+    for(i = 0; i < mPt; i++)
+    {
+    fprintf(dataFile, "%15.8e ",gridFun.Values(i,j,k));
+    }
+    fprintf(dataFile, "\n");
+    }}
+
+    fclose(dataFile);
+}
+
+void outputToDataFile(const GridFunction3d& gF, const string& fileName, const string& formatString = "%20.15e")
 {
 //
 //  Create format string
@@ -159,15 +276,11 @@ void outputToDataFile(const GridFunction3d& gF, const string& fileName, const st
     ostringstream s;
     s.str("");
     s << formatString << " ";
-//
-//  Open and then write to a file
-//
-    FILE* dataFile;
 
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
     long xPt = gF.getXpanelCount() + 1;
@@ -182,26 +295,24 @@ void outputToDataFile(const GridFunction3d& gF, const string& fileName, const st
     double yMax    = gF.getYmax();
     double zMax    = gF.getZmax();
 
-
     fprintf(dataFile,"%ld \n", xPt);
 	fprintf(dataFile,"%ld \n", yPt);
 	fprintf(dataFile,"%ld \n", zPt);
 
-    fprintf(dataFile,"%15.10e \n",xMin);
-	fprintf(dataFile,"%15.10e \n",xMax);
-	fprintf(dataFile,"%15.10e \n",yMin);
-	fprintf(dataFile,"%15.10e \n",yMax);
-    fprintf(dataFile,"%15.10e \n",zMin);
-	fprintf(dataFile,"%15.10e \n",zMax);
+    fprintf(dataFile,"%20.15e \n",xMin);
+	fprintf(dataFile,"%20.15e \n",xMax);
+	fprintf(dataFile,"%20.15e \n",yMin);
+	fprintf(dataFile,"%20.15e \n",yMax);
+    fprintf(dataFile,"%20.15e \n",zMin);
+	fprintf(dataFile,"%20.15e \n",zMax);
 
-
-    for(long k = 0; k < zPt; k++)
+    for(long i = 0; i < xPt; i++)
     {
     for(long j = 0; j < yPt; j++)
     {
-    for(long i = 0; i < xPt; i++)
+    for(long k = 0; k < zPt; k++)
     {
-    fprintf(dataFile, s.str().c_str(),gF.Values(i,j,k));
+    fprintf(dataFile, s.str().c_str(),gF(i,j,k));
     }
     fprintf(dataFile, "\n");
     }}
@@ -210,8 +321,10 @@ void outputToDataFile(const GridFunction3d& gF, const string& fileName, const st
     fclose(dataFile);
 }
 
-void inputFromDataFile(GridFunction3d& gF, FILE* dataFile)
+void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
+	size_t rValue = 0;
+
     long xPt;
     long yPt;
 	long zPt;
@@ -224,31 +337,41 @@ void inputFromDataFile(GridFunction3d& gF, FILE* dataFile)
     double yMax;
     double zMax;
 
+    rValue = fscanf(dataFile,"%ld", &xPt) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%ld", &yPt) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%ld", &zPt) != 1 ? 1 : rValue;
 
+    rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (yPt <= 0) ? 1 : rValue;
+    rValue = (zPt <= 0) ? 1 : rValue;
 
-    fscanf(dataFile,"%ld", &xPt);
-	fscanf(dataFile,"%ld", &yPt);
-	fscanf(dataFile,"%ld", &zPt);
+    rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&yMin) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&yMax) != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&zMin) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&zMax) != 1 ? 1 : rValue;
 
-    fscanf(dataFile,"%lf",&xMin);
-	fscanf(dataFile,"%lf",&xMax);
-	fscanf(dataFile,"%lf",&yMin);
-	fscanf(dataFile,"%lf",&yMax);
-    fscanf(dataFile,"%lf",&zMin);
-	fscanf(dataFile,"%lf",&zMax);
+	rValue = (xMax < xMin) ? 1 : rValue;
+    rValue = (yMax < yMin) ? 1 : rValue;
+    rValue = (zMax < zMin) ? 1 : rValue;
 
     gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax,zPt-1,zMin,zMax);
 
-
-	for(long k = 0; k < zPt; k++)
+    for(long i = 0; i < xPt; i++)
     {
     for(long j = 0; j < yPt; j++)
     {
-    for(long i = 0; i < xPt; i++)
+	for(long k = 0; k < zPt; k++)
     {
-    fscanf(dataFile,"%lf",&gF.Values(i,j,k));
+    rValue = fscanf(dataFile,"%lf",&gF(i,j,k)) != 1 ? 1 : rValue;
     }
     }}
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
+    }
 
 }
 
@@ -263,11 +386,20 @@ void inputFromDataFile(GridFunction3d& gF, const string& fileName)
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    inputFromDataFile(gF, dataFile);
+    inputFromDataFile(gF, dataFile,fileName);
 
 	fclose(dataFile);
 }
 
+//
+//                    !!! Note !!!
+//
+// Date: Sept. 2, 2018
+//
+// The structure of data output changed to be consistent with ASCII output created by
+// outputToDataFile(...). Binary data files written using older versions of this
+// class cannot be read by this version.
+//
 
 void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 {
@@ -278,12 +410,11 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 	std::int64_t Zpt64 = gF.getZpanelCount() + 1;
 
     double xMin  = gF.getXmin();
+	double xMax  = gF.getXmax();
     double yMin  = gF.getYmin();
+    double yMax  = gF.getYmax();
 	double zMin  = gF.getZmin();
-
-    double hx = gF.getHx();
-    double hy = gF.getHy();
-	double hz = gF.getHz();
+	double zMax  = gF.getZmax();
 
 	//
 	//  Write out the grid structure information. Using std:int64
@@ -295,13 +426,12 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 	fwrite(&Ypt64,  sizeof(std::int64_t), 1, dataFile);
 	fwrite(&Zpt64,  sizeof(std::int64_t), 1, dataFile);
 
-    fwrite(&hx,  sizeof(double), 1, dataFile);
-	fwrite(&hy,  sizeof(double), 1, dataFile);
-	fwrite(&hz,  sizeof(double), 1, dataFile);
-
-    fwrite(&xMin,  sizeof(double), 1, dataFile);
+	fwrite(&xMin,  sizeof(double), 1, dataFile);
+	fwrite(&xMax,  sizeof(double), 1, dataFile);
 	fwrite(&yMin,  sizeof(double), 1, dataFile);
+    fwrite(&yMax,  sizeof(double), 1, dataFile);
 	fwrite(&zMin,  sizeof(double), 1, dataFile);
+	fwrite(&zMax,  sizeof(double), 1, dataFile);
 //
 //  Write ot the function values
 //
@@ -309,8 +439,26 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 
-void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName,
-		   int& noFileFlag)
+
+void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName)
+{
+
+//  Open input file for binary read
+
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "rb" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+	inputFromBinaryDataFile(gF,dataFile,fileName);
+
+    fclose(dataFile);
+}
+
+// Legacy call not using throw/catch error for file errors
+
+void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName, int& noFileFlag)
 {
 	//
 	//  Open input file (remember to use the b mode to specify binary!!!!)
@@ -323,23 +471,20 @@ void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName,
 	      return;
 	}
 
-	inputFromBinaryDataFile(gF,dataFile);
-
-    if(ferror(dataFile))
-	{
-	      printf( "GridFunction3d could not be initialized from data file  %s \n",fileName.c_str());
-	      exit(1);
-	}
+	inputFromBinaryDataFile(gF,dataFile,fileName);
 
     fclose(dataFile);
 }
-void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile)
+
+
+
+
+void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue;
     long dataSize;
 
     long    xPt;    long yPt;    long zPt;
-    double   hx;   double hy;   double hz;
     double xMin; double yMin; double zMin;
     double xMax; double yMax; double zMax;
 
@@ -347,49 +492,76 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile)
 	std::int64_t Ypt64;
 	std::int64_t Zpt64;
 
-	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile);
-	rValue = fread(&Ypt64,  sizeof(std::int64_t), 1, dataFile);
-	rValue = fread(&Zpt64,  sizeof(std::int64_t), 1, dataFile);
+	rValue = 0;
 
-	rValue = fread(&hx,  sizeof(double), 1, dataFile);
-	rValue = fread(&hy,  sizeof(double), 1, dataFile);
-	rValue = fread(&hz,  sizeof(double), 1, dataFile);
+	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&Ypt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&Zpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
 
-	rValue = fread(&xMin,  sizeof(double), 1, dataFile);
-	rValue = fread(&yMin,  sizeof(double), 1, dataFile);
-	rValue = fread(&zMin,  sizeof(double), 1, dataFile);
+	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+
+	rValue = fread(&yMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&yMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+
+	rValue = fread(&zMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&zMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+
+
+    rValue = (xMax < xMin) ? 1 : rValue;
+    rValue = (yMax < yMin) ? 1 : rValue;
+    rValue = (zMax < zMin) ? 1 : rValue;
+
 
 	xPt = (long)Xpt64;
 	yPt = (long)Ypt64;
 	zPt = (long)Zpt64;
 
-	xMax = xMin + (xPt-1)*hx;
-	yMax = yMin + (yPt-1)*hy;
-	zMax = zMin + (zPt-1)*hz;
+	rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (yPt <= 0) ? 1 : rValue;
+    rValue = (zPt <= 0) ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
+    }
+
+    // Initialize instance and then read in the data
 
 	gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax,zPt-1,zMin,zMax);
 	dataSize = xPt*yPt*zPt;
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 
-	// Statement to suppress set but not used warnings.
-	if(rValue){};
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
+    }
+
 }
 
 
-void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile)
+void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
-	size_t rValue;
+	size_t rValue = 0;
 
     long dataSize;
 
     long xPt = gF.getXpanelCount() + 1;
     long yPt = gF.getYpanelCount() + 1;
 	long zPt = gF.getZpanelCount() + 1;
-	dataSize = xPt*yPt*zPt;
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 
-    // Statement to suppress set but not used warnings.
-	if(rValue){};
+    rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (yPt <= 0) ? 1 : rValue;
+    rValue = (zPt <= 0) ? 1 : rValue;
+
+	dataSize = xPt*yPt*zPt;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nValues from SCC::GridFunction3d could not be read from file " + fileName + " \n");
+    }
 }
 
 
@@ -416,14 +588,14 @@ void outputToBinaryDataFile(const GridFunction3d& gF, const string& fileName)
 //
 //  Open and then write to a file (remember to use the b mode to specify binary!!!!)
 //
-    FILE* dataFile;
-
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "wb" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
+
     outputToBinaryDataFile(gF, dataFile);
+
     fclose(dataFile);
 }
 

@@ -9,7 +9,7 @@
  * are all associated with a single SCC::GridFunction3d instance. One then multi-threads
  * an insertion or extraction loop using the instance with index equal to the thread index
  * inside the loop. As long as the overall insertion or extraction loop is
- * indexed disjoint data of the SCC::GridFunction2d, the extraction or insertion
+ * indexing disjoint data of the SCC::GridFunction2d, the extraction or insertion
  * will be thread-safe.
  *
  *
@@ -17,12 +17,13 @@
  * data that "crosses", e.g. insert data slices corresponding to different coordinate
  * directions.
  *
- *
- *
  * SCC_GridFunction3dSliceOp.h
  *
  *  Created on: Feb 25, 2016
  *      Author: anderson
+ *
+ *
+ *  Release : 18.09.03
  */
 
  /*

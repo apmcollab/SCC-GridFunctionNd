@@ -9,7 +9,7 @@
  * are all associated with a single SCC::GridFunction2d instance. One then multi-threads
  * an insertion or extraction loop using the instance with index equal to the thread index
  * inside the loop. As long as the overall insertion or extraction loop is
- * indexed disjoint data of the SCC::GridFunction2d, the extraction or insertion
+ * indexing disjoint data of the SCC::GridFunction2d, the extraction or insertion
  * will be thread-safe.
  *
  *
@@ -23,6 +23,8 @@
  *
  *  Created on: Feb 25, 2016
  *      Author: anderson
+ *
+  *  Release : 18.09.03
  */
 
  /*

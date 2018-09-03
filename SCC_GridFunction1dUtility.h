@@ -3,6 +3,15 @@
  *
  *  Created on: Jun 28, 2015
  *      Author: anderson
+ *
+ *
+ * Utility routines - mostly routines for file input and output
+ * of GridFunction1d instances.
+ *
+ * Modifications: Jun 28, 2015
+ *               Sept. 4, 2018
+ *
+ *  Release : 18.09.03
  */
 
 /*
@@ -45,13 +54,16 @@ using namespace std;
 // macro returns a non-zero value if the open fails (e.g. a non-zero error code).
 //
 #ifndef _MSC_VER
+#ifndef OPENFILE
 #define OPENFILE(dataFile,filename,mode) ((dataFile = fopen(filename,  mode)) == NULL)
+#endif
 #else
+#ifndef OPENFILE
 #define OPENFILE(dataFile,fileName,mode) ((fopen_s(&dataFile,fileName, mode)) != 0)
 #pragma warning(push)
 #pragma warning(disable: 4996)
 #endif
-
+#endif
 
 #include "SCC_GridFunction1d.h"
 
@@ -63,64 +75,54 @@ class GridFunction1dUtility
 {
 public:
 
-void outputToGNUplot(const GridFunction1d& gF, const string& fileName, const string& formatString = "%15.10e")
+void outputToGNUplot(const GridFunction1d& gF, const string& fileName,
+const string& formatString = "%20.15e")
 {
 //
 //  Open and then write to a file
 //
     ostringstream s;
-    FILE* dataFile;
 
     s.str("");
     s << formatString << "  " << formatString << " \n";
 
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    long i;
+    long xPanels   = gF.getXpanelCount();
+    double  xMin   = gF.getXmin();
+    double  xMax   = gF.getXmax();
+    double  hx     = (xMax-xMin)/(double)xPanels;
 
-    double* xp;
+    fprintf(dataFile,"# %ld %20.15e %20.15e  \n", xPanels,xMin,xMax);
 
-    double hx     = gF.getHx();
-    long mPanel   = gF.getXpanelCount();
-    double xMin   = gF.getXmin();
-
-    xp     = new double[mPanel+1];
-
-    for(i = 0; i <= mPanel; i++)
+    double x;
+    for(long i = 0;  i <= xPanels; i++)
     {
-    xp[i] = xMin + i*hx;
+    x = xMin + i*hx;
+    fprintf(dataFile,(s.str()).c_str(),x, gF.Values(i));
     }
-
-    for(i = 0;  i <= mPanel; i++)
-    {
-    fprintf(dataFile,(s.str()).c_str(),xp[i], gF.Values(i));
-    }
-
-    delete [] xp;
 
     fclose(dataFile);
 }
 
-void outputToMatlab(const GridFunction1d& gF,  const string& fileName, const string& formatString = "%15.10e")
+void outputToMatlab(const GridFunction1d& gF,  const string& fileName, const string& formatString = "%20.15e")
 {
 //
 //  Open and then write to a file
 //
-    FILE* dataFile;
     ostringstream s;
     s.str("");
     s << formatString << "  " << formatString << " \n";
 
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
-
     long i;
 
     double xp;
@@ -152,7 +154,7 @@ void outputToMatlab(const GridFunction1d& gF,  const string& fileName, const str
 }
 
 void outputFunction(const GridFunction1d& fun, const string& fileName, const string& outputFormat,
-const string& formatString = "%15.10e")
+const string& formatString = "%20.15e")
 {
     ostringstream s;
     s.str("");
@@ -180,22 +182,21 @@ const string& formatString = "%15.10e")
 }
 
 
-void appendToGNUplot(const GridFunction1d& gF,const string& fileName, const string& formatString = "%15.10e")
+void appendToGNUplot(const GridFunction1d& gF,const string& fileName, const string& formatString = "%20.15e")
 {
 //
 //  Open and then write to a file
 //
-    FILE* dataFile;
 	ostringstream s;
 
     s.str("");
     s << formatString << "  " << formatString << " \n";
 
 
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "a+" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
     long i;
@@ -224,34 +225,49 @@ void appendToGNUplot(const GridFunction1d& gF,const string& fileName, const stri
     fclose(dataFile);
 }
 
-void inputFromGNUplot(GridFunction1d& gF, const string& fileName, int& noFileFlag)
+void inputFromGNUplot(GridFunction1d& gF, const string& fileName)
 {
-	//
 	//  Open input file
-	//
-	// ifstream dataFile(fileName);
 
     FILE* dataFile = 0;
-	noFileFlag     = 0;
-	 if(OPENFILE(dataFile,fileName.c_str(), "r" ))
+    if(OPENFILE(dataFile,fileName.c_str(), "r" ))
     {
-	  noFileFlag = 1;
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    SCC::DoubleVector1d* V;
+    size_t rValue = 0;
 
-    long i;
-    long mPanel;
+    char poundChar;
+    long xPanels;
+    double xMin; double xMax;
+
+    rValue = fscanf(dataFile,"%c", &poundChar)  != 1 ? 1 : rValue;   // remove leading #
+    rValue = fscanf(dataFile,"%ld",&xPanels)    != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&xMin)       != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf",&xMax)       != 1 ? 1 : rValue;
+
+    rValue = (xMax < xMin)  ? 1 : rValue;
+    rValue = (xPanels <= 0) ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from gnuplot data file " + fileName + " \n");
+    }
+
+
+    gF.initialize(xPanels,xMin,xMax);
+
     double x;
-
-    V      = gF.getValuesPointer();
-    mPanel = gF.getXpanelCount();
-    for(i = 0;  i <= mPanel; i++)
+    for(long i = 0;  i <= xPanels; i++)
     {
-	fscanf(dataFile,"%lf",&x);
-    fscanf(dataFile,"%lf",&(V->operator()(i)));
+	rValue = fscanf(dataFile,"%lf %lf ",&x,&gF(i)) != 2 ? 1 : rValue;
     }
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from gnuplot data file " + fileName + " \n");
+    }
+
 	fclose(dataFile);
 }
 
@@ -259,7 +275,7 @@ void inputFromGNUplot(GridFunction1d& gF, const string& fileName, int& noFileFla
 // Outputs the data to a file in gnuplot format, and then creates a very basic Veusz plot file that
 // is linked to that data.
 //
-void outputToVeusz(const GridFunction1d& gF, const string& fileName, const string& formatString = "%15.10e")
+void outputToVeusz(const GridFunction1d& gF, const string& fileName, const string& formatString = "%20.15e")
 {
 //	 Output data file in gnuplot format
 
@@ -270,11 +286,10 @@ void outputToVeusz(const GridFunction1d& gF, const string& fileName, const strin
     string veuszName = baseName;
     veuszName.append(".vsz");
 
-    FILE* dataFile;
+    FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w" ))
     {
-      printf( "The file %s could not be  opened\n",fileName.c_str());
-      return;
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
 	ostringstream s;
@@ -313,6 +328,235 @@ void outputToVeusz(const GridFunction1d& gF, const string& fileName, const strin
     fclose(dataFile);
 }
 
+
+void outputToDataFile(const GridFunction1d& gF, const string& fileName, const string& formatString = "%20.15e")
+{
+//
+//  Create format string
+//
+    ostringstream s;
+    s.str("");
+    s << formatString << " ";
+//
+//  Open and then write to a file
+//
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    long xPt = gF.getXpanelCount() + 1;
+
+    double xMin  = gF.getXmin();
+    double xMax  = gF.getXmax();
+
+    fprintf(dataFile,"%ld \n", xPt);
+
+    fprintf(dataFile,"%20.15e \n",xMin);
+	fprintf(dataFile,"%20.15e \n",xMax);
+
+
+    for(long i = 0; i < xPt; i++)
+    {
+    fprintf(dataFile, s.str().c_str(),gF(i));
+    }
+
+
+    fclose(dataFile);
+}
+
+void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
+{
+	size_t rValue = 0;
+
+    long xPt;
+
+    double xMin;
+    double xMax;
+
+    rValue = fscanf(dataFile,"%ld", &xPt) != 1 ? 1 : rValue;
+
+    rValue = (xPt <= 0) ? 1 : rValue;
+
+    rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
+
+	rValue = (xMax < xMin) ? 1 : rValue;
+
+
+    gF.initialize(xPt-1,xMin,xMax);
+
+    for(long i = 0; i < xPt; i++)
+    {
+    rValue = fscanf(dataFile,"%lf",&gF(i)) != 1 ? 1 : rValue;
+    }
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from file " + fileName + " \n");
+    }
+
+}
+
+void inputFromDataFile(GridFunction1d& gF, const string& fileName)
+{
+//
+//  Open input file
+//
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "r" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+    inputFromDataFile(gF, dataFile,fileName);
+
+	fclose(dataFile);
+}
+
+void outputToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
+{
+    long dataSize;
+
+    std::int64_t Xpt64 = gF.getXpanelCount() + 1;
+
+    double xMin  = gF.getXmin();
+	double xMax  = gF.getXmax();
+
+	//
+	//  Write out the grid structure information. Using std:int64
+	//  for integer values to avoid problems with machines with
+	//  alternate storage sizes for int's and long's
+	//
+    fwrite(&Xpt64,  sizeof(std::int64_t), 1, dataFile);
+
+	fwrite(&xMin,  sizeof(double), 1, dataFile);
+	fwrite(&xMax,  sizeof(double), 1, dataFile);
+
+//
+//  Write the function values
+//
+    dataSize = Xpt64;
+    fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
+}
+
+
+void inputFromBinaryDataFile(GridFunction1d& gF, const string& fileName)
+{
+
+//  Open input file for binary read
+
+    FILE* dataFile = 0;
+    if(OPENFILE(dataFile,fileName.c_str(), "rb" ))
+    {
+      throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
+    }
+
+	inputFromBinaryDataFile(gF,dataFile,fileName);
+
+    fclose(dataFile);
+}
+
+
+
+void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
+{
+	size_t rValue;
+    long dataSize;
+
+    long    xPt;
+    double xMin;
+    double xMax;
+
+	std::int64_t Xpt64;
+
+	rValue = 0;
+
+	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+
+	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+
+    rValue = (xMax < xMin) ? 1 : rValue;
+
+	xPt = (long)Xpt64;
+
+	rValue = (xPt <= 0) ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from file " + fileName + " \n");
+    }
+
+    // Initialize instance and then read in the data
+
+	gF.initialize(xPt-1,xMin,xMax);
+
+	dataSize = xPt;
+
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from file " + fileName + " \n");
+    }
+
+}
+
+
+void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
+{
+	size_t rValue = 0;
+
+    long dataSize;
+
+    long xPt = gF.getXpanelCount() + 1;
+
+    rValue = (xPt <= 0) ? 1 : rValue;
+
+	dataSize = xPt;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+
+    if(rValue == 1)
+    {
+    throw std::runtime_error("\nValues from SCC::GridFunction1d could not be read from file " + fileName + " \n");
+    }
+}
+
+
+void appendValuesToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
+{
+	long dataSize;
+    long xPt = gF.getXpanelCount() + 1;
+//
+//  Write ot the function values
+//
+    dataSize = xPt;
+    fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
+}
+
+//
+// This routine opens up a new file and write GridFunction1d structure and data
+// and then closes the file
+//
+void outputToBinaryDataFile(const GridFunction1d& gF, const string& fileName)
+{
+//
+//  Open and then write to a file (remember to use the b mode to specify binary!!!!)
+//
+    FILE* dataFile;
+
+    if(OPENFILE(dataFile,fileName.c_str(), "wb" ))
+    {
+      printf( "The file %s could not be  opened\n",fileName.c_str());
+      return;
+    }
+    outputToBinaryDataFile(gF, dataFile);
+
+    fclose(dataFile);
+}
+
 //
 // Veusz plot used to determine veusz plot data structure for the above member function
 //
@@ -340,6 +584,12 @@ To('..')
 To('..')
 To('..')
  */
+
+
+
+
+
+
 };
 } // namespace
 
