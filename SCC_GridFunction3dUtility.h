@@ -152,6 +152,24 @@ void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, 
     fclose(dataFile);
 }
 
+
+// Legacy interface for scaling w.r.t. x coordinate only. This is a deprecated interface
+// and the calling code should be updated.
+
+void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel,
+double xScalingFactor)
+{
+    string scalingCoord = "x";
+    if(xScalingFactor > 0)
+	{
+	outputDataToVTKfile(gridFun,fileName,dataLabel,scalingCoord,xScalingFactor);
+	}
+	else
+	{
+	outputDataToVTKfile(gridFun,fileName,dataLabel);
+	}
+
+}
 //
 // This scales the coordinate values of the scaling coordinate specified (one of "x", "y" or "z") so that
 // the coordinate extent is the scaling value times the largest size of the domain in the other coordinate
@@ -267,6 +285,7 @@ string scalingCoord, double scalingValue)
 
     fclose(dataFile);
 }
+
 
 void outputToDataFile(const GridFunction3d& gF, const string& fileName, const string& formatString = "%20.15e")
 {
