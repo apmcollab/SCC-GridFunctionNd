@@ -171,7 +171,7 @@ double xScalingFactor)
 
 }
 //
-// This scales the coordinate values of the scaling coordinate specified (one of "x", "y" or "z") so that
+// This routine scales the coordinate values of the scaling coordinate specified (one of "x", "y" or "z") so that
 // the coordinate extent is the scaling value times the largest size of the domain in the other coordinate
 // directions. This utility is added so that rectangular regions in which the specified coordinate is thin
 // with respect to the others can be viewed with the thin region expanded.
@@ -215,7 +215,7 @@ string scalingCoord, double scalingValue)
     {
     transverseSizeMax = b-a;
     transverseSizeMax = (transverseSizeMax > (f-e)) ? transverseSizeMax : (f-e);
-    yScalingFactor = (yScalingFactor*transverseSizeMax)/(f-e);
+    yScalingFactor = (yScalingFactor*transverseSizeMax)/(d-c);
     }
     else {yScalingFactor = 1.0;}
 
