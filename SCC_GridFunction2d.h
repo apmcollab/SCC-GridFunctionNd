@@ -4,7 +4,7 @@
  *  Created on: Jun 27, 2015
  *      Author: anderson
  *
- *
+ * Release : 18.09.04
  *
  * Decisions: Extending DoubleVector2D so that move semantics can be incorporated into
  * the underlying vector operations on grid values without having to duplicate all

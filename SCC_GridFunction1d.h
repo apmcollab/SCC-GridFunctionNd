@@ -4,6 +4,8 @@
  *  Created on: Jun 27, 2015
  *      Author: anderson
  *
+ *  Release : 18.09.04
+ *
  *
  *
  * Decisions: Extending DoubleVector1D so that move semantics can be incorporated into
