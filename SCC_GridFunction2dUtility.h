@@ -12,7 +12,7 @@
  * Modifications: Jun 28, 2015
  *               Sept. 4, 2018
  *
- *  Release : 18.09.03
+ *  Release : 18.09.04
  */
 /*
 #############################################################################
@@ -299,6 +299,23 @@ void outputDataToVTKfile(const GridFunction2d& gridFun, const string& fileName, 
 }
 
 
+//
+// Output data structure for ASCII and Binary output
+//
+// xPanels
+// yPanels
+// xMin
+// xMax
+// yMin
+// yMax
+// F(0,0)
+// F(0,1)
+// F(0,2)
+//
+//  ***
+//
+
+
 void outputToDataFile(const GridFunction2d& gF, const string& fileName, const string& formatString = "%20.15e")
 {
 //
@@ -316,8 +333,8 @@ void outputToDataFile(const GridFunction2d& gF, const string& fileName, const st
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    long xPt = gF.getXpanelCount() + 1;
-    long yPt = gF.getYpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
 
     double xMin  = gF.getXmin();
     double yMin  = gF.getYmin();
@@ -325,18 +342,16 @@ void outputToDataFile(const GridFunction2d& gF, const string& fileName, const st
     double xMax    = gF.getXmax();
     double yMax    = gF.getYmax();
 
-    fprintf(dataFile,"%ld \n", xPt);
-	fprintf(dataFile,"%ld \n", yPt);
-
-
+    fprintf(dataFile,"%ld \n",    xPanels);
+	fprintf(dataFile,"%ld \n",    yPanels);
     fprintf(dataFile,"%20.15e \n",xMin);
 	fprintf(dataFile,"%20.15e \n",xMax);
 	fprintf(dataFile,"%20.15e \n",yMin);
 	fprintf(dataFile,"%20.15e \n",yMax);
 
-    for(long i = 0; i < xPt; i++)
+    for(long i = 0; i <= xPanels; i++)
     {
-    for(long j = 0; j < yPt; j++)
+    for(long j = 0; j <= yPanels; j++)
     {
     fprintf(dataFile, s.str().c_str(),gF(i,j));
     }
@@ -351,8 +366,8 @@ void inputFromDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue = 0;
 
-    long xPt;
-    long yPt;
+    long xPanels;
+    long yPanels;
 
     double xMin;
     double yMin;
@@ -360,26 +375,25 @@ void inputFromDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
     double xMax;
     double yMax;
 
-    rValue = fscanf(dataFile,"%ld", &xPt) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%ld", &yPt) != 1 ? 1 : rValue;
-
-    rValue = (xPt <= 0) ? 1 : rValue;
-    rValue = (yPt <= 0) ? 1 : rValue;
+    rValue = fscanf(dataFile,"%ld", &xPanels) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%ld", &yPanels) != 1 ? 1 : rValue;
 
     rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
 	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
 	rValue = fscanf(dataFile,"%lf",&yMin) != 1 ? 1 : rValue;
 	rValue = fscanf(dataFile,"%lf",&yMax) != 1 ? 1 : rValue;
 
+    rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
 	rValue = (xMax < xMin) ? 1 : rValue;
     rValue = (yMax < yMin) ? 1 : rValue;
 
 
-    gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax);
+    gF.initialize(xPanels,xMin,xMax,yPanels,yMin,yMax);
 
-    for(long i = 0; i < xPt; i++)
+    for(long i = 0; i <= xPanels; i++)
     {
-	for(long j = 0; j < yPt; j++)
+	for(long j = 0; j <= yPanels; j++)
     {
     rValue = fscanf(dataFile,"%lf",&gF(i,j)) != 1 ? 1 : rValue;
     }}
@@ -411,22 +425,25 @@ void outputToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
 {
     long dataSize;
 
-    std::int64_t Xpt64 = gF.getXpanelCount() + 1;
-    std::int64_t Ypt64 = gF.getYpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
+
+    std::int64_t xPanels64 = (std::int64_t) xPanels;
+    std::int64_t yPanels64 = (std::int64_t) yPanels;
 
     double xMin  = gF.getXmin();
 	double xMax  = gF.getXmax();
     double yMin  = gF.getYmin();
     double yMax  = gF.getYmax();
+
 	//
 	//  Write out the grid structure information. Using std:int64
 	//  for integer values to avoid problems with machines with
 	//  alternate storage sizes for int's and long's
 	//
 
-    fwrite(&Xpt64,  sizeof(std::int64_t), 1, dataFile);
-	fwrite(&Ypt64,  sizeof(std::int64_t), 1, dataFile);
-
+    fwrite(&xPanels64,  sizeof(std::int64_t), 1, dataFile);
+	fwrite(&yPanels64,  sizeof(std::int64_t), 1, dataFile);
 	fwrite(&xMin,  sizeof(double), 1, dataFile);
 	fwrite(&xMax,  sizeof(double), 1, dataFile);
 	fwrite(&yMin,  sizeof(double), 1, dataFile);
@@ -435,7 +452,7 @@ void outputToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
 //
 //  Write ot the function values
 //
-    dataSize = Xpt64*Ypt64;
+    dataSize = (xPanels+1)*(yPanels+1);
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 
@@ -462,33 +479,31 @@ void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName
 	size_t rValue;
     long dataSize;
 
-    long    xPt;    long yPt;
+    long    xPanels;
+    long    yPanels;
     double xMin; double yMin;
     double xMax; double yMax;
 
-	std::int64_t Xpt64;
-	std::int64_t Ypt64;
+	std::int64_t xPanels64;
+	std::int64_t yPanels64;
 
 
 	rValue = 0;
 
-	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&Ypt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
-
+	rValue = fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&yPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
 	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
-
 	rValue = fread(&yMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 	rValue = fread(&yMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 
-    rValue = (xMax < xMin) ? 1 : rValue;
-    rValue = (yMax < yMin) ? 1 : rValue;
+	xPanels = (long)xPanels64;
+	yPanels = (long)yPanels64;
 
-	xPt = (long)Xpt64;
-	yPt = (long)Ypt64;
-
-	rValue = (xPt <= 0) ? 1 : rValue;
-    rValue = (yPt <= 0) ? 1 : rValue;
+	rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
+    rValue = (xMax < xMin)  ? 1 : rValue;
+    rValue = (yMax < yMin)  ? 1 : rValue;
 
     if(rValue == 1)
     {
@@ -497,8 +512,8 @@ void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName
 
     // Initialize instance and then read in the data
 
-	gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax);
-	dataSize = xPt*yPt;
+	gF.initialize(xPanels,xMin,xMax,yPanels,yMin,yMax);
+	dataSize = (xPanels+1)*(yPanels+1);
 
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
 
@@ -516,13 +531,13 @@ void inputValuesFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fi
 
     long dataSize;
 
-    long xPt = gF.getXpanelCount() + 1;
-    long yPt = gF.getYpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
 
-    rValue = (xPt <= 0) ? 1 : rValue;
-    rValue = (yPt <= 0) ? 1 : rValue;
+    rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
 
-	dataSize = xPt*yPt;
+	dataSize = (xPanels+1)*(yPanels+1);
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
 
     if(rValue == 1)
@@ -536,12 +551,12 @@ void appendValuesToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
 {
 
 	long dataSize;
-    long xPt = gF.getXpanelCount() + 1;
-    long yPt = gF.getYpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
 //
 //  Write ot the function values
 //
-    dataSize = xPt*yPt;
+    dataSize = (xPanels+1)*(yPanels+1);
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 

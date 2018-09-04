@@ -11,7 +11,7 @@
  * Modifications: Jun 28, 2015
  *               Sept. 4, 2018
  *
- *  Release : 18.09.03
+ *  Release : 18.09.04
  */
 
 /*
@@ -327,6 +327,22 @@ void outputToVeusz(const GridFunction1d& gF, const string& fileName, const strin
 
     fclose(dataFile);
 }
+
+
+
+
+//
+// Output data structure for ASCII and Binary output
+//
+// xPanels
+// xMin
+// xMax
+// F(0)
+// F(1)
+// F(2)
+//
+//  ***
+//
 
 
 void outputToDataFile(const GridFunction1d& gF, const string& fileName, const string& formatString = "%20.15e")

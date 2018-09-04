@@ -12,7 +12,7 @@
  * Modifications: Jun 28, 2015
  *               Sept. 4, 2018
  *
- *  Release : 18.09.03
+ *  Release : 18.09.04
 */
 
 
@@ -287,6 +287,28 @@ string scalingCoord, double scalingValue)
 }
 
 
+
+//
+// Output data structure for ASCII and Binary output
+//
+// xPanels
+// yPanels
+// zPanels
+// xMin
+// xMax
+// yMin
+// yMax
+// zMin
+// zMax
+// F(0,0,0)
+// F(0,0,1)
+// F(0,0,2)
+//
+//  ***
+//
+
+
+
 void outputToDataFile(const GridFunction3d& gF, const string& fileName, const string& formatString = "%20.15e")
 {
 //
@@ -302,22 +324,21 @@ void outputToDataFile(const GridFunction3d& gF, const string& fileName, const st
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    long xPt = gF.getXpanelCount() + 1;
-    long yPt = gF.getYpanelCount() + 1;
-	long zPt = gF.getZpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
+    long zPanels = gF.getZpanelCount();
 
     double xMin  = gF.getXmin();
     double yMin  = gF.getYmin();
-	double zMin  = gF.getZmin();
+    double zMin  = gF.getZmin();
 
     double xMax    = gF.getXmax();
     double yMax    = gF.getYmax();
     double zMax    = gF.getZmax();
 
-    fprintf(dataFile,"%ld \n", xPt);
-	fprintf(dataFile,"%ld \n", yPt);
-	fprintf(dataFile,"%ld \n", zPt);
-
+    fprintf(dataFile,"%ld \n",    xPanels);
+	fprintf(dataFile,"%ld \n",    yPanels);
+	fprintf(dataFile,"%ld \n",    zPanels);
     fprintf(dataFile,"%20.15e \n",xMin);
 	fprintf(dataFile,"%20.15e \n",xMax);
 	fprintf(dataFile,"%20.15e \n",yMin);
@@ -325,11 +346,11 @@ void outputToDataFile(const GridFunction3d& gF, const string& fileName, const st
     fprintf(dataFile,"%20.15e \n",zMin);
 	fprintf(dataFile,"%20.15e \n",zMax);
 
-    for(long i = 0; i < xPt; i++)
+    for(long i = 0; i <= xPanels; i++)
     {
-    for(long j = 0; j < yPt; j++)
+    for(long j = 0; j <= yPanels; j++)
     {
-    for(long k = 0; k < zPt; k++)
+    for(long k = 0; k <= zPanels; k++)
     {
     fprintf(dataFile, s.str().c_str(),gF(i,j,k));
     }
@@ -344,44 +365,36 @@ void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue = 0;
 
-    long xPt;
-    long yPt;
-	long zPt;
+    long xPanels; long yPanels; long zPanels;
 
-    double xMin;
-    double yMin;
-	double zMin;
+    double xMin; double yMin; double zMin;
+    double xMax; double yMax; double zMax;
 
-    double xMax;
-    double yMax;
-    double zMax;
+    rValue = fscanf(dataFile,"%ld", &xPanels) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%ld", &yPanels) != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%ld", &zPanels) != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf", &xMin)    != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf", &xMax)    != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf", &yMin)    != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf", &yMax)    != 1 ? 1 : rValue;
+    rValue = fscanf(dataFile,"%lf", &zMin)    != 1 ? 1 : rValue;
+	rValue = fscanf(dataFile,"%lf", &zMax)    != 1 ? 1 : rValue;
 
-    rValue = fscanf(dataFile,"%ld", &xPt) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%ld", &yPt) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%ld", &zPt) != 1 ? 1 : rValue;
-
-    rValue = (xPt <= 0) ? 1 : rValue;
-    rValue = (yPt <= 0) ? 1 : rValue;
-    rValue = (zPt <= 0) ? 1 : rValue;
-
-    rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf",&yMin) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf",&yMax) != 1 ? 1 : rValue;
-    rValue = fscanf(dataFile,"%lf",&zMin) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf",&zMax) != 1 ? 1 : rValue;
+	rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
+    rValue = (zPanels <= 0) ? 1 : rValue;
 
 	rValue = (xMax < xMin) ? 1 : rValue;
     rValue = (yMax < yMin) ? 1 : rValue;
     rValue = (zMax < zMin) ? 1 : rValue;
 
-    gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax,zPt-1,zMin,zMax);
+    gF.initialize(xPanels,xMin,xMax,yPanels,yMin,yMax,zPanels,zMin,zMax);
 
-    for(long i = 0; i < xPt; i++)
+    for(long i = 0; i <= xPanels; i++)
     {
-    for(long j = 0; j < yPt; j++)
+    for(long j = 0; j <= yPanels; j++)
     {
-	for(long k = 0; k < zPt; k++)
+	for(long k = 0; k <= zPanels; k++)
     {
     rValue = fscanf(dataFile,"%lf",&gF(i,j,k)) != 1 ? 1 : rValue;
     }
@@ -410,23 +423,18 @@ void inputFromDataFile(GridFunction3d& gF, const string& fileName)
 	fclose(dataFile);
 }
 
-//
-//                    !!! Note !!!
-//
-// Date: Sept. 2, 2018
-//
-// The structure of data output changed to be consistent with ASCII output created by
-// outputToDataFile(...). Binary data files written using older versions of this
-// class cannot be read by this version.
-//
 
 void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 {
     long dataSize;
 
-    std::int64_t Xpt64 = gF.getXpanelCount() + 1;
-    std::int64_t Ypt64 = gF.getYpanelCount() + 1;
-	std::int64_t Zpt64 = gF.getZpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
+    long zPanels = gF.getZpanelCount();
+
+    std::int64_t xPanels64 = (std::int64_t) xPanels;
+    std::int64_t yPanels64 = (std::int64_t) yPanels;
+    std::int64_t zPanels64 = (std::int64_t) zPanels;
 
     double xMin  = gF.getXmin();
 	double xMax  = gF.getXmax();
@@ -441,9 +449,9 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 	//  alternate storage sizes for int's and long's
 	//
 
-    fwrite(&Xpt64,  sizeof(std::int64_t), 1, dataFile);
-	fwrite(&Ypt64,  sizeof(std::int64_t), 1, dataFile);
-	fwrite(&Zpt64,  sizeof(std::int64_t), 1, dataFile);
+    fwrite(&xPanels64,  sizeof(std::int64_t), 1, dataFile);
+	fwrite(&yPanels64,  sizeof(std::int64_t), 1, dataFile);
+	fwrite(&zPanels64,  sizeof(std::int64_t), 1, dataFile);
 
 	fwrite(&xMin,  sizeof(double), 1, dataFile);
 	fwrite(&xMax,  sizeof(double), 1, dataFile);
@@ -454,7 +462,7 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 //
 //  Write ot the function values
 //
-    dataSize = Xpt64*Ypt64*Zpt64;
+    dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 
@@ -496,26 +504,25 @@ void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName, int& no
 }
 
 
-
-
 void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue;
     long dataSize;
 
-    long    xPt;    long yPt;    long zPt;
+    long xPanels; long yPanels; long zPanels;
+
     double xMin; double yMin; double zMin;
     double xMax; double yMax; double zMax;
 
-	std::int64_t Xpt64;
-	std::int64_t Ypt64;
-	std::int64_t Zpt64;
+	std::int64_t xPanels64;
+	std::int64_t yPanels64;
+	std::int64_t zPanels64;
 
 	rValue = 0;
 
-	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&Ypt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&Zpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&yPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue = fread(&zPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
 
 	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
@@ -526,19 +533,17 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName
 	rValue = fread(&zMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 	rValue = fread(&zMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 
+	xPanels = (long)xPanels64;
+	yPanels = (long)yPanels64;
+	zPanels = (long)zPanels64;
 
     rValue = (xMax < xMin) ? 1 : rValue;
     rValue = (yMax < yMin) ? 1 : rValue;
     rValue = (zMax < zMin) ? 1 : rValue;
 
-
-	xPt = (long)Xpt64;
-	yPt = (long)Ypt64;
-	zPt = (long)Zpt64;
-
-	rValue = (xPt <= 0) ? 1 : rValue;
-    rValue = (yPt <= 0) ? 1 : rValue;
-    rValue = (zPt <= 0) ? 1 : rValue;
+	rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
+    rValue = (zPanels <= 0) ? 1 : rValue;
 
     if(rValue == 1)
     {
@@ -547,8 +552,9 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName
 
     // Initialize instance and then read in the data
 
-	gF.initialize(xPt-1,xMin,xMax,yPt-1,yMin,yMax,zPt-1,zMin,zMax);
-	dataSize = xPt*yPt*zPt;
+	gF.initialize(xPanels,xMin,xMax,yPanels,yMin,yMax,zPanels,zMin,zMax);
+
+	dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
 
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
 
@@ -556,7 +562,6 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName
     {
     throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
     }
-
 }
 
 
@@ -566,15 +571,16 @@ void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fi
 
     long dataSize;
 
-    long xPt = gF.getXpanelCount() + 1;
-    long yPt = gF.getYpanelCount() + 1;
-	long zPt = gF.getZpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
+	long zPanels = gF.getZpanelCount();
 
-    rValue = (xPt <= 0) ? 1 : rValue;
-    rValue = (yPt <= 0) ? 1 : rValue;
-    rValue = (zPt <= 0) ? 1 : rValue;
+    rValue = (xPanels <= 0) ? 1 : rValue;
+    rValue = (yPanels <= 0) ? 1 : rValue;
+    rValue = (zPanels <= 0) ? 1 : rValue;
 
-	dataSize = xPt*yPt*zPt;
+	dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
+
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
 
     if(rValue == 1)
@@ -588,13 +594,13 @@ void appendValuesToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 {
 
 	long dataSize;
-    long xPt = gF.getXpanelCount() + 1;
-    long yPt = gF.getYpanelCount() + 1;
-	long zPt = gF.getZpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
+    long yPanels = gF.getYpanelCount();
+	long zPanels = gF.getZpanelCount();
 //
 //  Write ot the function values
 //
-    dataSize = xPt*yPt*zPt;
+    dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 
@@ -618,46 +624,6 @@ void outputToBinaryDataFile(const GridFunction3d& gF, const string& fileName)
     fclose(dataFile);
 }
 
-/*
-
-void GridFunction3dUtility::getDomainData(XML_ParameterListArray& paramList,
-                      long& xPanels, double& xMin, double& xMax,
-                      long& yPanels, double& yMin, double& yMax,
-                      long& zPanels, double& zMin, double& zMax)
-{
-	if(paramList.isParameterList("ComputationalDomain") == 0)
-    {
-    string mesg = "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
-    mesg       += "Error initializing GridFunction3d class \n";
-    mesg       += "ComputationalDomain parameter list was not found \n";
-    mesg       += "in input XML_ParameterListArray \n";
-    mesg       += "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
-    throw runtime_error(mesg);
-    }
-
-    if(paramList.isParameterList("GridParameters") == 0)
-    {
-    string mesg = "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
-    mesg       += "Error initializing GridFunction3d class \n";
-    mesg       += "GridParameters parameter list was not found \n";
-    mesg       += "in input XML_ParameterListArray \n";
-    mesg       += "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
-    throw runtime_error(mesg);
-    }
-
-    xPanels  = paramList.getParameterValue("xPanels","GridParameters");
-    yPanels  = paramList.getParameterValue("yPanels","GridParameters");
-    zPanels  = paramList.getParameterValue("zPanels","GridParameters");
-
-    xMin  = paramList.getParameterValue("xMin","ComputationalDomain");
-	yMin  = paramList.getParameterValue("yMin","ComputationalDomain");
-	zMin  = paramList.getParameterValue("zMin","ComputationalDomain");
-	xMax  = paramList.getParameterValue("xMax","ComputationalDomain");
-	yMax  = paramList.getParameterValue("yMax","ComputationalDomain");
-	zMax  = paramList.getParameterValue("zMax","ComputationalDomain");
-}
-
-*/
 
 };
 }
