@@ -346,18 +346,18 @@ void outputToDataFile(const GridFunction1d& gF, const string& fileName, const st
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    long xPt = gF.getXpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
 
     double xMin  = gF.getXmin();
     double xMax  = gF.getXmax();
 
-    fprintf(dataFile,"%ld \n", xPt);
+    fprintf(dataFile,"%ld \n", xPanels);
 
     fprintf(dataFile,"%20.15e \n",xMin);
 	fprintf(dataFile,"%20.15e \n",xMax);
 
 
-    for(long i = 0; i < xPt; i++)
+    for(long i = 0; i <= xPanels; i++)
     {
     fprintf(dataFile, s.str().c_str(),gF(i));
     }
@@ -370,14 +370,12 @@ void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue = 0;
 
-    long xPt;
+    long xPanels;
+    double xMin; double xMax;
 
-    double xMin;
-    double xMax;
+    rValue = fscanf(dataFile,"%ld", &xPanels) != 1 ? 1 : rValue;
 
-    rValue = fscanf(dataFile,"%ld", &xPt) != 1 ? 1 : rValue;
-
-    rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (xPanels <= 0) ? 1 : rValue;
 
     rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
 	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
@@ -385,9 +383,9 @@ void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
 	rValue = (xMax < xMin) ? 1 : rValue;
 
 
-    gF.initialize(xPt-1,xMin,xMax);
+    gF.initialize(xPanels,xMin,xMax);
 
-    for(long i = 0; i < xPt; i++)
+    for(long i = 0; i <= xPanels; i++)
     {
     rValue = fscanf(dataFile,"%lf",&gF(i)) != 1 ? 1 : rValue;
     }
@@ -419,7 +417,8 @@ void outputToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
 {
     long dataSize;
 
-    std::int64_t Xpt64 = gF.getXpanelCount() + 1;
+    long         xPanels   = gF.getXpanelCount();
+    std::int64_t xPanels64 = (std::int64_t)xPanels;
 
     double xMin  = gF.getXmin();
 	double xMax  = gF.getXmax();
@@ -429,15 +428,14 @@ void outputToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
 	//  for integer values to avoid problems with machines with
 	//  alternate storage sizes for int's and long's
 	//
-    fwrite(&Xpt64,  sizeof(std::int64_t), 1, dataFile);
-
+    fwrite(&xPanels64,  sizeof(std::int64_t), 1, dataFile);
 	fwrite(&xMin,  sizeof(double), 1, dataFile);
 	fwrite(&xMax,  sizeof(double), 1, dataFile);
 
 //
 //  Write the function values
 //
-    dataSize = Xpt64;
+    dataSize = xPanels+1;
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 
@@ -465,24 +463,22 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName
 	size_t rValue;
     long dataSize;
 
-    long    xPt;
+    long    xPanels;
     double xMin;
     double xMax;
 
-	std::int64_t Xpt64;
+	std::int64_t xPanels64;
 
 	rValue = 0;
 
-	rValue = fread(&Xpt64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	rValue  = fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	xPanels = (long)xPanels64;
 
 	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
 
     rValue = (xMax < xMin) ? 1 : rValue;
-
-	xPt = (long)Xpt64;
-
-	rValue = (xPt <= 0) ? 1 : rValue;
+	rValue = (xPanels <= 0) ? 1 : rValue;
 
     if(rValue == 1)
     {
@@ -491,9 +487,9 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName
 
     // Initialize instance and then read in the data
 
-	gF.initialize(xPt-1,xMin,xMax);
+	gF.initialize(xPanels,xMin,xMax);
 
-	dataSize = xPt;
+	dataSize = xPanels+1;
 
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
 
@@ -511,11 +507,11 @@ void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fi
 
     long dataSize;
 
-    long xPt = gF.getXpanelCount() + 1;
+    long xPanels = gF.getXpanelCount();
 
-    rValue = (xPt <= 0) ? 1 : rValue;
+    rValue = (xPanels <= 0) ? 1 : rValue;
 
-	dataSize = xPt;
+	dataSize = xPanels+1;
 	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
 
     if(rValue == 1)
@@ -528,11 +524,11 @@ void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fi
 void appendValuesToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
 {
 	long dataSize;
-    long xPt = gF.getXpanelCount() + 1;
-//
+    long xPanels = gF.getXpanelCount();
+
 //  Write ot the function values
-//
-    dataSize = xPt;
+
+    dataSize = xPanels+1;
     fwrite(gF.getDataPointer(),  sizeof(double), dataSize, dataFile);
 }
 
