@@ -472,22 +472,9 @@ return false;
 
 void createProductFunction(const GridFunction1d& funX, const GridFunction1d& funY, const GridFunction1d& funZ)
 {
-	this->xPanels = funX.getXpanelCount();
-    this->yPanels = funY.getXpanelCount();
-    this->zPanels = funZ.getXpanelCount();
-
-    this->xMin = funX.getXmin();
-    this->xMax = funX.getXmax();
-    this->yMin = funY.getXmin();
-    this->yMax = funY.getXmax();
-    this->zMin = funZ.getXmin();
-    this->zMax = funZ.getXmax();
-
-    this->hx     = (xMax-xMin)/(double)(xPanels);
-    this->hy     = (yMax-yMin)/(double)(yPanels);
-    this->hz     = (zMax-zMin)/(double)(zPanels);
-
-	DoubleVector3d::initialize(xPanels+1,yPanels+1,zPanels+1);
+    initialize(funX.xPanels, funX.xMin, funX.xMax,
+               funY.xPanels, funY.xMin, funY.xMax,
+               funZ.xPanels, funZ.xMin, funZ.xMax);
 
 	long i; long j; long k;
 
@@ -509,24 +496,10 @@ void createProductFunction(const GridFunction1d& funX, const GridFunction1d& fun
 
 void createProductFunction(const GridFunction2d& funXY,  const GridFunction1d& funZ)
 {
-	this->xPanels = funXY.getXpanelCount();
-    this->yPanels = funXY.getYpanelCount();
-    this->zPanels = funZ.getXpanelCount();
+    initialize(funXY.xPanels, funXY.xMin, funXY.xMax,
+               funXY.yPanels, funXY.yMin, funXY.yMax,
+               funZ.xPanels,   funZ.xMin,  funZ.xMax);
 
-    this->xMin = funXY.getXmin();
-    this->xMax = funXY.getXmax();
-
-    this->yMin = funXY.getYmin();
-    this->yMax = funXY.getYmax();
-
-    this->zMin = funZ.getXmin();
-    this->zMax = funZ.getXmax();
-
-    this->hx     = (xMax-xMin)/(double)(xPanels);
-    this->hy     = (yMax-yMin)/(double)(yPanels);
-    this->hz     = (zMax-zMin)/(double)(zPanels);
-
-	DoubleVector3d::initialize(xPanels+1,yPanels+1,zPanels+1);
 
 	long i; long j; long k;
 
@@ -536,10 +509,10 @@ void createProductFunction(const GridFunction2d& funXY,  const GridFunction1d& f
 	{
     for(j = 0; j <= yPanels; j++)
 	{
-	fXY = funXY.Values(i,j);
+	fXY = funXY(i,j);
 	for(k = 0; k <= zPanels; k++)
 	{
-	fZ = funZ.Values(k);
+	fZ = funZ(k);
 
 	Values(i,j,k) = fXY*fZ;
 	}}}
@@ -547,36 +520,23 @@ void createProductFunction(const GridFunction2d& funXY,  const GridFunction1d& f
 
 void createProductFunction(const GridFunction1d& funX,const  GridFunction2d& funYZ)
 {
-	this->xPanels = funX.getXpanelCount();
-    this->yPanels = funYZ.getXpanelCount();
-    this->zPanels = funYZ.getYpanelCount();
 
-    this->xMin = funX.getXmin();
-    this->xMax = funX.getXmax();
+    initialize(funX.xPanels,   funX.xMin,  funX.xMax,
+               funYZ.xPanels, funYZ.xMin, funYZ.xMax,
+               funYZ.yPanels, funYZ.yMin, funYZ.yMax);
 
-    this->yMin = funYZ.getXmin();
-    this->yMax = funYZ.getXmax();
-
-    this->zMin = funYZ.getYmin();
-    this->zMax = funYZ.getYmax();
-
-    this->hx     = (xMax-xMin)/(double)(xPanels);
-    this->hy     = (yMax-yMin)/(double)(yPanels);
-    this->hz     = (zMax-zMin)/(double)(zPanels);
-
-	DoubleVector3d::initialize(xPanels+1,yPanels+1,zPanels+1);
 
 	long i; long j; long k;
 	double fX; double fYZ;
 
+	for(i = 0; i <= xPanels; i++)
+	{
+	fX = funX(i);
 	for(j = 0; j <= yPanels; j++)
 	{
 	for(k = 0; k <= zPanels; k++)
 	{
-	fYZ = funYZ.Values(j,k);
-	for(i = 0; i <= xPanels; i++)
-	{
-	fX = funX.Values(i);
+	fYZ = funYZ(j,k);
 	Values(i,j,k) = fX*fYZ;
 	}}}
 }
