@@ -481,19 +481,8 @@ void operator-=(const  std::function<double(double,double)>& F)
 
 void createProductFunction(const GridFunction1d& funX, const GridFunction1d& funY)
 {
-	this->xPanels = funX.getXpanelCount();
-    this->yPanels = funY.getXpanelCount();
-
-
-    this->xMin = funX.getXmin();
-    this->xMax = funX.getXmax();
-    this->yMin = funY.getXmin();
-    this->yMax = funY.getXmax();
-
-    this->hx     = (xMax-xMin)/(double)(xPanels);
-    this->hy     = (yMax-yMin)/(double)(yPanels);
-
-	DoubleVector2d::initialize(xPanels+1,yPanels+1);
+    initialize(funX.xPanels, funX.xMin, funX.xMax,
+               funY.xPanels, funY.xMin, funY.xMax);
 
 	long i; long j;
 
