@@ -45,6 +45,7 @@
 #include "SCC_GridFunction1d.h"
 #include "SCC_GridFunction2d.h"
 
+#include <cmath>
 #include <functional>
 #include <iostream>
 
@@ -1036,6 +1037,26 @@ GridFunction2d getConstantZslice(long zIndex) const //(x-y function)
     return R;
 }
 
+void getConstantZslice(long zIndex,GridFunction2d& R) const //(x-y function)
+{
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long j = 0; j <= yPanels; j++)
+    {
+    R.Values(i,j) = Values(i,j,zIndex);
+    }}
+}
+
+void setConstantZslice(long zIndex,const GridFunction2d& R) //(x-y function)
+{
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long j = 0; j <= yPanels; j++)
+    {
+    Values(i,j,zIndex) = R.Values(i,j);
+    }}
+}
+
 GridFunction2d getConstantYslice(long yIndex) const //(x-z function)
 {
 	GridFunction2d R(xPanels,xMin,xMax,zPanels,zMin,zMax);
@@ -1047,6 +1068,27 @@ GridFunction2d getConstantYslice(long yIndex) const //(x-z function)
     }}
     return R;
 }
+
+void getConstantYslice(long yIndex,GridFunction2d& R) const //(x-z function)
+{
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    R.Values(i,k) = Values(i,yIndex,k);
+    }}
+}
+
+void setConstantYslice(long yIndex,const GridFunction2d& R)  //(x-z function)
+{
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    Values(i,yIndex,k) = R.Values(i,k);
+    }}
+}
+
 
 GridFunction2d getConstantXslice(long xIndex) const //(y-z function)
 {
@@ -1060,6 +1102,27 @@ GridFunction2d getConstantXslice(long xIndex) const //(y-z function)
     return R;
 }
 
+void getConstantXslice(long xIndex, GridFunction2d& R) const //(y-z function)
+{
+    for(long j = 0; j <= yPanels; j++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    R.Values(j,k) = Values(xIndex,j,k);
+    }}
+}
+
+void setConstantXslice(long xIndex, const GridFunction2d& R) //(y-z function)
+{
+    for(long j = 0; j <= yPanels; j++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    Values(xIndex,j,k) = R.Values(j,k);
+    }}
+}
+
+
 GridFunction1d getConstantYZslice(long yIndex, long zIndex) const  // (x function)
 {
 	GridFunction1d R(xPanels,xMin,xMax);
@@ -1069,6 +1132,23 @@ GridFunction1d getConstantYZslice(long yIndex, long zIndex) const  // (x functio
 	}
 	return R;
 }
+
+void getConstantYZslice(long yIndex, long zIndex, GridFunction1d& R) const  // (x function)
+{
+	for(long i = 0; i <= xPanels; i++)
+	{
+	R.Values(i) = Values(i,yIndex,zIndex);
+	}
+}
+
+void setConstantYZslice(long yIndex, long zIndex,const GridFunction1d& R)   // (x function)
+{
+	for(long i = 0; i <= xPanels; i++)
+	{
+	Values(i,yIndex,zIndex) = R.Values(i);
+	}
+}
+
 
 GridFunction1d getConstantXZslice(long xIndex, long zIndex) const  //( y function)
 {
@@ -1080,6 +1160,22 @@ GridFunction1d getConstantXZslice(long xIndex, long zIndex) const  //( y functio
 	return R;
 }
 
+void  getConstantXZslice(long xIndex, long zIndex,GridFunction1d& R) const  //( y function)
+{
+	for(long j = 0; j <= yPanels; j++)
+	{
+	R.Values(j) = Values(xIndex,j,zIndex);
+	}
+}
+
+void  setConstantXZslice(long xIndex, long zIndex,const GridFunction1d& R)    //( y function)
+{
+	for(long j = 0; j <= yPanels; j++)
+	{
+	Values(xIndex,j,zIndex) = R.Values(j);
+	}
+}
+
 GridFunction1d getConstantXYslice(long xIndex, long yIndex) const  //( z function)
 {
 	GridFunction1d R(zPanels,zMin,zMax);
@@ -1089,6 +1185,23 @@ GridFunction1d getConstantXYslice(long xIndex, long yIndex) const  //( z functio
 	}
 	return R;
 }
+
+void getConstantXYslice(long xIndex, long yIndex,GridFunction1d& R) const  //( z function)
+{
+	for(long k = 0; k <= zPanels; k++)
+	{
+	R.Values(k) = Values(xIndex,yIndex,k);
+	}
+}
+
+void setConstantXYslice(long xIndex, long yIndex,const GridFunction1d& R)    //( z function)
+{
+	for(long k = 0; k <= zPanels; k++)
+	{
+	Values(xIndex,yIndex,k) = R.Values(k);
+	}
+}
+
 
 
 virtual int isXperiodic() const {return 0;}

@@ -43,6 +43,7 @@
 
 #include <functional>
 #include <iostream>
+#include <cmath>
 using namespace std;
 
 #include "../GridFunctionNd/SCC_GridFunction1d.h"
@@ -760,6 +761,22 @@ GridFunction1d getConstantYslice(long yIndex) const  // (x function)
 	return R;
 }
 
+void getConstantYslice(long yIndex, GridFunction1d& R) const  // (x function)
+{
+	for(long i = 0; i <= xPanels; i++)
+	{
+	R.Values(i) = Values(i,yIndex);
+	}
+}
+
+void setConstantYslice(long yIndex, const GridFunction1d& R)  // (x function)
+{
+	for(long i = 0; i <= xPanels; i++)
+	{
+	Values(i,yIndex) = R.Values(i);
+	}
+}
+
 GridFunction1d getConstantXslice(long xIndex) const  //( y function)
 {
 	GridFunction1d R(yPanels,yMin,yMax);
@@ -769,6 +786,24 @@ GridFunction1d getConstantXslice(long xIndex) const  //( y function)
 	}
 	return R;
 }
+
+void getConstantXslice(long xIndex, GridFunction1d& R) const  //( y function)
+{
+	for(long j = 0; j <= yPanels; j++)
+	{
+	R.Values(j) = Values(xIndex,j);
+	}
+}
+
+void setConstantXslice(long xIndex, const GridFunction1d& R)    //( y function)
+{
+	for(long j = 0; j <= yPanels; j++)
+	{
+	Values(xIndex,j) = R.Values(j);
+	}
+}
+
+
 
 void setBoundaryValues(double value)
 {
