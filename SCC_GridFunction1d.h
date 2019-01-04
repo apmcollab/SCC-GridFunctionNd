@@ -47,6 +47,7 @@
 
 #include <functional>
 #include <iostream>
+#include <cmath>
 
 #include "../DoubleVectorNd/SCC_DoubleVector1d.h"
 using namespace std;
