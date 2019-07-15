@@ -54,15 +54,19 @@ using namespace std;
 // macro returns a non-zero value if the open fails (e.g. a non-zero error code).
 //
 #ifndef _MSC_VER
+
 #ifndef OPENFILE
 #define OPENFILE(dataFile,filename,mode) ((dataFile = fopen(filename,  mode)) == NULL)
 #endif
+
 #else
+
 #ifndef OPENFILE
 #define OPENFILE(dataFile,fileName,mode) ((fopen_s(&dataFile,fileName, mode)) != 0)
 #pragma warning(push)
 #pragma warning(disable: 4996)
 #endif
+
 #endif
 
 #include "SCC_GridFunction1d.h"
@@ -477,7 +481,7 @@ void inputFromBinaryDataFile(GridFunction1d& gF, const string& fileName)
 void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue;
-    long dataSize;
+    size_t dataSize;
 
     long    xPanels;
     double xMin;
@@ -507,7 +511,7 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName
 
 	dataSize = xPanels+1;
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
 
     if(rValue == 1)
     {
@@ -520,15 +524,14 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName
 void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue = 0;
-
-    long dataSize;
+    size_t dataSize;
 
     long xPanels = gF.getXpanelCount();
 
     rValue = (xPanels <= 0) ? 1 : rValue;
 
 	dataSize = xPanels+1;
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
 
     if(rValue == 1)
     {

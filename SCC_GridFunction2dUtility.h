@@ -477,7 +477,7 @@ void inputFromBinaryDataFile(GridFunction2d& gF, const string& fileName)
 void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue;
-    long dataSize;
+    size_t dataSize;
 
     long    xPanels;
     long    yPanels;
@@ -515,7 +515,7 @@ void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName
 	gF.initialize(xPanels,xMin,xMax,yPanels,yMin,yMax);
 	dataSize = (xPanels+1)*(yPanels+1);
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
 
     if(rValue == 1)
     {
@@ -528,8 +528,7 @@ void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName
 void inputValuesFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue = 0;
-
-    long dataSize;
+    size_t dataSize;
 
     long xPanels = gF.getXpanelCount();
     long yPanels = gF.getYpanelCount();
@@ -538,7 +537,7 @@ void inputValuesFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fi
     rValue = (yPanels <= 0) ? 1 : rValue;
 
 	dataSize = (xPanels+1)*(yPanels+1);
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
 
     if(rValue == 1)
     {
