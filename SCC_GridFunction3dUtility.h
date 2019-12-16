@@ -507,7 +507,7 @@ void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName, int& no
 void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue;
-    long dataSize;
+    size_t dataSize;
 
     long xPanels; long yPanels; long zPanels;
 
@@ -556,7 +556,7 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName
 
 	dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
 
     if(rValue == 1)
     {
@@ -568,8 +568,7 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName
 void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 {
 	size_t rValue = 0;
-
-    long dataSize;
+    size_t dataSize;
 
     long xPanels = gF.getXpanelCount();
     long yPanels = gF.getYpanelCount();
@@ -581,7 +580,7 @@ void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fi
 
 	dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != (uint)dataSize ? 1 : rValue;
+	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
 
     if(rValue == 1)
     {
