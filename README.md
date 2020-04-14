@@ -8,7 +8,7 @@ Warning : The GridFunctionNdUtility classes have been changed significantly from
 ### Prerequisites
 C++11
 ### Versioning
-Release : 19.12.16
+Release : 1.0.1
 ### Authors
 Chris Anderson
 ### License
