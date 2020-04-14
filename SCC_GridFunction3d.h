@@ -50,7 +50,7 @@
 #include <iostream>
 
 #include "../DoubleVectorNd/SCC_DoubleVector3d.h"
-using namespace std;
+
 
 namespace SCC
 {
@@ -931,7 +931,7 @@ double integralTrapezoidal(std::function<double(double)> F) const
 
 double norm1() const
 {
-  return integralTrapezoidal([](double x){return abs(x);});
+  return integralTrapezoidal([](double x){return std::abs(x);});
 }
 
 // Trapezoidal Method Integral Approximation
@@ -945,7 +945,7 @@ double integralTrapezoidal() const
 
 double norm2() const
 {
-    return sqrt(abs(integralTrapezoidal([](double x){return x*x;})));
+    return std::sqrt(std::abs(integralTrapezoidal([](double x){return x*x;})));
 }
 
 // 2-Norm^2 computed using the trapezoidal rule approximation
@@ -1334,13 +1334,13 @@ bool isCoincident(const GridFunction3d& V)
 {
 	double domainDiffTol    = 1.0e-13;
 
-    long discretizationDiff = abs(xPanels - V.xPanels)
-                            + abs(yPanels - V.yPanels)
-                            + abs(zPanels - V.zPanels);
+    long discretizationDiff = std::abs(xPanels - V.xPanels)
+                            + std::abs(yPanels - V.yPanels)
+                            + std::abs(zPanels - V.zPanels);
 
-    double domainDiff = (abs(xMin - V.xMin) + abs(xMax - V.xMax))/abs(xMax-xMin)
-                      + (abs(yMin - V.yMin) + abs(yMax - V.yMax))/abs(yMax-yMin)
-                      + (abs(zMin - V.zMin) + abs(zMax - V.zMax))/abs(zMax-zMin);
+    double domainDiff = (std::abs(xMin - V.xMin) + std::abs(xMax - V.xMax))/std::abs(xMax-xMin)
+                      + (std::abs(yMin - V.yMin) + std::abs(yMax - V.yMax))/std::abs(yMax-yMin)
+                      + (std::abs(zMin - V.zMin) + std::abs(zMax - V.zMax))/std::abs(zMax-zMin);
 
     if((discretizationDiff > 0) || (domainDiff > domainDiffTol)) return false;
     return true;
@@ -1400,9 +1400,6 @@ bool isCoincident(const GridFunction3d& V)
     };
 #endif
 
-
-
-
 //###################################################################
 //                      Bounds Checking
 //###################################################################
@@ -1410,9 +1407,9 @@ bool isCoincident(const GridFunction3d& V)
 #ifdef _DEBUG
         bool domainCheck() const
         {
-        cerr << "XXX SCC::GridFunction3d Error  XXX" << endl;
-        cerr << "Left side of assignment must be a non-null GridFunction3d instance." << endl;
-        cerr << endl;
+        std::cerr << "XXX SCC::GridFunction3d Error  XXX" << std::endl;
+        std::cerr << "Left side of assignment must be a non-null GridFunction3d instance." << std::endl;
+        std::cerr << std::endl;
         return false;
         }
 #else

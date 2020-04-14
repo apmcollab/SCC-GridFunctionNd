@@ -50,7 +50,6 @@
 #include <cmath>
 
 #include "../DoubleVectorNd/SCC_DoubleVector1d.h"
-using namespace std;
 
 namespace SCC
 {
@@ -436,7 +435,7 @@ double integralTrapezoidal(std::function<double(double)> F) const
 
 double norm1() const
 {
-  return integralTrapezoidal([](double x){return abs(x);});
+  return integralTrapezoidal([](double x){return std::abs(x);});
 }
 
 // Trapezoidal Method Integral Approximation
@@ -450,7 +449,7 @@ double integralTrapezoidal() const
 
 double norm2() const
 {
-    return sqrt(abs(integralTrapezoidal([](double x){return x*x;})));
+    return std::sqrt(std::abs(integralTrapezoidal([](double x){return x*x;})));
 }
 
 // 2-Norm^2 computed using the trapezoidal rule approximation
@@ -539,9 +538,9 @@ bool isCoincident(const GridFunction1d& V)
 {
 	double domainDiffTol    = 1.0e-13;
 
-    long discretizationDiff = abs(xPanels - V.xPanels);
+    long discretizationDiff = std::abs(xPanels - V.xPanels);
 
-    double domainDiff = (abs(xMin - V.xMin) + abs(xMax - V.xMax))/abs(xMax-xMin);
+    double domainDiff = (std::abs(xMin - V.xMin) + std::abs(xMax - V.xMax))/std::abs(xMax-xMin);
 
     if((discretizationDiff > 0) || (domainDiff > domainDiffTol)) return false;
     return true;
@@ -564,9 +563,9 @@ protected :
 #ifdef _DEBUG
         bool domainCheck() const
         {
-        cerr << "XXX SCC::GridFunction1d Error  XXX" << endl;
-        cerr << "Left side of assignment must be a non-null GridFunction1d instance." << endl;
-        cerr << endl;
+        std::cerr << "XXX SCC::GridFunction1d Error  XXX" << std::endl;
+        std::cerr << "Left side of assignment must be a non-null GridFunction1d instance." << std::endl;
+        std::cerr << std::endl;
         return false;
         }
 #else

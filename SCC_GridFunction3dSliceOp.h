@@ -55,8 +55,6 @@
 #include "SCC_GridFunction2d.h"
 #include "SCC_GridFunction3d.h"
 
-using namespace std;
-
 namespace SCC
 {
 class GridFunction3dSliceOp

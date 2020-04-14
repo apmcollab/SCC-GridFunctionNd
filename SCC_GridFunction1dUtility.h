@@ -46,7 +46,7 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
-using namespace std;
+
 
 // MS compilers generate warnings if fopen is used instead of fopen_s (a Microsoft specific language
 // extension, so this macro implements the appropriate equivalent to fopen that MS wants when
@@ -79,13 +79,13 @@ class GridFunction1dUtility
 {
 public:
 
-void outputToGNUplot(const GridFunction1d& gF, const string& fileName,
-const string& formatString = "%20.15e")
+void outputToGNUplot(const GridFunction1d& gF, const std::string& fileName,
+const std::string& formatString = "%20.15e")
 {
 //
 //  Open and then write to a file
 //
-    ostringstream s;
+    std::ostringstream s;
 
     s.str("");
     s << formatString << "  " << formatString << " \n";
@@ -113,12 +113,12 @@ const string& formatString = "%20.15e")
     fclose(dataFile);
 }
 
-void outputToMatlab(const GridFunction1d& gF,  const string& fileName, const string& formatString = "%20.15e")
+void outputToMatlab(const GridFunction1d& gF,  const std::string& fileName, const std::string& formatString = "%20.15e")
 {
 //
 //  Open and then write to a file
 //
-    ostringstream s;
+    std::ostringstream s;
     s.str("");
     s << formatString << "  " << formatString << " \n";
 
@@ -157,10 +157,10 @@ void outputToMatlab(const GridFunction1d& gF,  const string& fileName, const str
     fclose(dataFile);
 }
 
-void outputFunction(const GridFunction1d& fun, const string& fileName, const string& outputFormat,
-const string& formatString = "%20.15e")
+void outputFunction(const GridFunction1d& fun, const std::string& fileName, const std::string& outputFormat,
+const std::string& formatString = "%20.15e")
 {
-    ostringstream s;
+    std::ostringstream s;
     s.str("");
 
     if(outputFormat.compare("GNUPLOT")==0)
@@ -186,12 +186,12 @@ const string& formatString = "%20.15e")
 }
 
 
-void appendToGNUplot(const GridFunction1d& gF,const string& fileName, const string& formatString = "%20.15e")
+void appendToGNUplot(const GridFunction1d& gF,const std::string& fileName, const std::string& formatString = "%20.15e")
 {
 //
 //  Open and then write to a file
 //
-	ostringstream s;
+	std::ostringstream s;
 
     s.str("");
     s << formatString << "  " << formatString << " \n";
@@ -229,7 +229,7 @@ void appendToGNUplot(const GridFunction1d& gF,const string& fileName, const stri
     fclose(dataFile);
 }
 
-void inputFromGNUplot(GridFunction1d& gF, const string& fileName)
+void inputFromGNUplot(GridFunction1d& gF, const std::string& fileName)
 {
 	//  Open input file
 
@@ -279,15 +279,15 @@ void inputFromGNUplot(GridFunction1d& gF, const string& fileName)
 // Outputs the data to a file in gnuplot format, and then creates a very basic Veusz plot file that
 // is linked to that data.
 //
-void outputToVeusz(const GridFunction1d& gF, const string& fileName, const string& formatString = "%20.15e")
+void outputToVeusz(const GridFunction1d& gF, const std::string& fileName, const std::string& formatString = "%20.15e")
 {
 //	 Output data file in gnuplot format
 
 	outputToGNUplot(gF, fileName,formatString);
 
 	int lastindex    = fileName.find_last_of(".");
-    string baseName  = fileName.substr(0, lastindex);
-    string veuszName = baseName;
+    std::string baseName  = fileName.substr(0, lastindex);
+    std::string veuszName = baseName;
     veuszName.append(".vsz");
 
     FILE* dataFile = 0;
@@ -296,7 +296,7 @@ void outputToVeusz(const GridFunction1d& gF, const string& fileName, const strin
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-	ostringstream s;
+	std::ostringstream s;
     s.str("");
 
 	fprintf(dataFile,"%s","#Veusz saved document (version 1.23.1)\n");
@@ -349,12 +349,12 @@ void outputToVeusz(const GridFunction1d& gF, const string& fileName, const strin
 //
 
 
-void outputToDataFile(const GridFunction1d& gF, const string& fileName, const string& formatString = "%20.15e")
+void outputToDataFile(const GridFunction1d& gF, const std::string& fileName, const std::string& formatString = "%20.15e")
 {
 //
 //  Create format string
 //
-    ostringstream s;
+    std::ostringstream s;
     s.str("");
     s << formatString << " ";
 //
@@ -386,7 +386,7 @@ void outputToDataFile(const GridFunction1d& gF, const string& fileName, const st
     fclose(dataFile);
 }
 
-void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
+void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue = 0;
 
@@ -417,7 +417,7 @@ void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
 
 }
 
-void inputFromDataFile(GridFunction1d& gF, const string& fileName)
+void inputFromDataFile(GridFunction1d& gF, const std::string& fileName)
 {
 //
 //  Open input file
@@ -460,7 +460,7 @@ void outputToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
 }
 
 
-void inputFromBinaryDataFile(GridFunction1d& gF, const string& fileName)
+void inputFromBinaryDataFile(GridFunction1d& gF, const std::string& fileName)
 {
 
 //  Open input file for binary read
@@ -478,7 +478,7 @@ void inputFromBinaryDataFile(GridFunction1d& gF, const string& fileName)
 
 
 
-void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
+void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue;
     size_t dataSize;
@@ -521,7 +521,7 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName
 }
 
 
-void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, string fileName = "")
+void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue = 0;
     size_t dataSize;
@@ -555,7 +555,7 @@ void appendValuesToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
 // This routine opens up a new file and write GridFunction1d structure and data
 // and then closes the file
 //
-void outputToBinaryDataFile(const GridFunction1d& gF, const string& fileName)
+void outputToBinaryDataFile(const GridFunction1d& gF, const std::string& fileName)
 {
 //
 //  Open and then write to a file (remember to use the b mode to specify binary!!!!)

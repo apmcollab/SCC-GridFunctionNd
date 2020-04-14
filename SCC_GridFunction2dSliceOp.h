@@ -55,7 +55,6 @@
 #include "SCC_GridFunction2d.h"
 #include "SCC_GridFunction2d.h"
 
-using namespace std;
 
 namespace SCC
 {

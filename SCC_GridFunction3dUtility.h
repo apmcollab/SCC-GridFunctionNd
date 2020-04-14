@@ -48,7 +48,6 @@
 #include <functional>
 #include <cassert>
 #include <cstdint>
-using namespace std;
 
 // MS compilers generate warnings if fopen is used instead of fopen_s (a Microsoft specific language
 // extension, so this macro implements the appropriate equivalent to fopen that MS wants when
@@ -79,7 +78,7 @@ class  GridFunction3dUtility
 public :
 
 
-void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel)
+void outputDataToVTKfile(const GridFunction3d& gridFun, const std::string& fileName, const std::string& dataLabel)
 {
     FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
@@ -156,10 +155,10 @@ void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, 
 // Legacy interface for scaling w.r.t. x coordinate only. This is a deprecated interface
 // and the calling code should be updated.
 
-void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel,
+void outputDataToVTKfile(const GridFunction3d& gridFun, const std::string& fileName, const std::string& dataLabel,
 double xScalingFactor)
 {
-    string scalingCoord = "x";
+    std::string scalingCoord = "x";
     if(xScalingFactor > 0)
 	{
 	outputDataToVTKfile(gridFun,fileName,dataLabel,scalingCoord,xScalingFactor);
@@ -176,8 +175,8 @@ double xScalingFactor)
 // directions. This utility is added so that rectangular regions in which the specified coordinate is thin
 // with respect to the others can be viewed with the thin region expanded.
 //
-void outputDataToVTKfile(const GridFunction3d& gridFun, const string& fileName, const string& dataLabel,
-string scalingCoord, double scalingValue)
+void outputDataToVTKfile(const GridFunction3d& gridFun, const std::string& fileName, const std::string& dataLabel,
+std::string scalingCoord, double scalingValue)
 {
     FILE* dataFile = 0;
     if(OPENFILE(dataFile,fileName.c_str(), "w+" ))
@@ -309,12 +308,12 @@ string scalingCoord, double scalingValue)
 
 
 
-void outputToDataFile(const GridFunction3d& gF, const string& fileName, const string& formatString = "%20.15e")
+void outputToDataFile(const GridFunction3d& gF, const std::string& fileName, const std::string& formatString = "%20.15e")
 {
 //
 //  Create format string
 //
-    ostringstream s;
+    std::ostringstream s;
     s.str("");
     s << formatString << " ";
 
@@ -361,7 +360,7 @@ void outputToDataFile(const GridFunction3d& gF, const string& fileName, const st
     fclose(dataFile);
 }
 
-void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
+void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue = 0;
 
@@ -407,7 +406,7 @@ void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
 
 }
 
-void inputFromDataFile(GridFunction3d& gF, const string& fileName)
+void inputFromDataFile(GridFunction3d& gF, const std::string& fileName)
 {
 //
 //  Open input file
@@ -467,7 +466,7 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 }
 
 
-void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName)
+void inputFromBinaryDataFile(GridFunction3d& gF, const std::string& fileName)
 {
 
 //  Open input file for binary read
@@ -485,7 +484,7 @@ void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName)
 
 // Legacy call not using throw/catch error for file errors
 
-void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName, int& noFileFlag)
+void inputFromBinaryDataFile(GridFunction3d& gF, const std::string& fileName, int& noFileFlag)
 {
 	//
 	//  Open input file (remember to use the b mode to specify binary!!!!)
@@ -504,7 +503,7 @@ void inputFromBinaryDataFile(GridFunction3d& gF, const string& fileName, int& no
 }
 
 
-void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
+void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue;
     size_t dataSize;
@@ -565,7 +564,7 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName
 }
 
 
-void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, string fileName = "")
+void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue = 0;
     size_t dataSize;
@@ -607,7 +606,7 @@ void appendValuesToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 // This routine opens up a new file and write GridFunction3d structure and data
 // and then closes the file
 //
-void outputToBinaryDataFile(const GridFunction3d& gF, const string& fileName)
+void outputToBinaryDataFile(const GridFunction3d& gF, const std::string& fileName)
 {
 //
 //  Open and then write to a file (remember to use the b mode to specify binary!!!!)

@@ -44,7 +44,7 @@
 #include <cstdio>
 #include <cstring>
 #include <functional>
-using namespace std;
+
 
 // MS compilers generate warnings if fopen is used instead of fopen_s (a Microsoft specific language
 // extension, so this macro implements the appropriate equivalent to fopen that MS wants when
@@ -111,9 +111,9 @@ void addToValues(GridFunction2d& gFun, std::function<double(double,double)>& F)
 // x_1 y_0       f(x_1, y_0)
 // x_1 y_1       f(x_1, y_1))
 //
-void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& formatString = "%20.15e")
+void outputToGNUplot(GridFunction2d& gF, const std::string& fileName, const std::string& formatString = "%20.15e")
 {
-    ostringstream s;
+    std::ostringstream s;
     s.str("");
     s << formatString << "  " << formatString << "  " << formatString << " \n";
 //
@@ -159,7 +159,7 @@ void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& f
 }
 
 
- void inputFromGNUplot(GridFunction2d& gF, const string& fileName)
+ void inputFromGNUplot(GridFunction2d& gF, const std::string& fileName)
 {
 //
 //  Open and then read from file
@@ -221,7 +221,7 @@ void outputToGNUplot(GridFunction2d& gF, const string& fileName, const string& f
 
 
 
-void outputDataToVTKfile(const GridFunction2d& gridFun, const string& fileName, const string& dataLabel)
+void outputDataToVTKfile(const GridFunction2d& gridFun, const std::string& fileName, const std::string& dataLabel)
 {
 	FILE* dataFile;
 
@@ -316,12 +316,12 @@ void outputDataToVTKfile(const GridFunction2d& gridFun, const string& fileName, 
 //
 
 
-void outputToDataFile(const GridFunction2d& gF, const string& fileName, const string& formatString = "%20.15e")
+void outputToDataFile(const GridFunction2d& gF, const std::string& fileName, const std::string& formatString = "%20.15e")
 {
 //
 //  Create format string
 //
-    ostringstream s;
+    std::ostringstream s;
     s.str("");
     s << formatString << " ";
 //
@@ -362,7 +362,7 @@ void outputToDataFile(const GridFunction2d& gF, const string& fileName, const st
     fclose(dataFile);
 }
 
-void inputFromDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
+void inputFromDataFile(GridFunction2d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue = 0;
 
@@ -405,7 +405,7 @@ void inputFromDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
 
 }
 
-void inputFromDataFile(GridFunction2d& gF, const string& fileName)
+void inputFromDataFile(GridFunction2d& gF, const std::string& fileName)
 {
 //
 //  Open input file
@@ -457,7 +457,7 @@ void outputToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
 }
 
 
-void inputFromBinaryDataFile(GridFunction2d& gF, const string& fileName)
+void inputFromBinaryDataFile(GridFunction2d& gF, const std::string& fileName)
 {
 
 //  Open input file for binary read
@@ -474,7 +474,7 @@ void inputFromBinaryDataFile(GridFunction2d& gF, const string& fileName)
 }
 
 
-void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
+void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue;
     size_t dataSize;
@@ -525,7 +525,7 @@ void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName
 }
 
 
-void inputValuesFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, string fileName = "")
+void inputValuesFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, std::string fileName = "")
 {
 	size_t rValue = 0;
     size_t dataSize;
@@ -563,7 +563,7 @@ void appendValuesToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
 // This routine opens up a new file and write GridFunction2d structure and data
 // and then closes the file
 //
-void outputToBinaryDataFile(const GridFunction2d& gF, const string& fileName)
+void outputToBinaryDataFile(const GridFunction2d& gF, const std::string& fileName)
 {
 //
 //  Open and then write to a file (remember to use the b mode to specify binary!!!!)
