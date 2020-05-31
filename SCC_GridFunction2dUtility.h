@@ -35,8 +35,9 @@
 #############################################################################
 */
 
-#ifndef _SCC_GridFunction2dUtility_
-#define _SCC_GridFunction2dUtility_
+#ifndef SCC_GRID_FUNCTION_2D_UTILITY_
+#define SCC_GRID_FUNCTION_2D_UTILITY_
+
 #include <iostream>
 #include <fstream>
 #include <sstream>

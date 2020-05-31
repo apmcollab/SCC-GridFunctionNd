@@ -35,8 +35,8 @@
 #############################################################################
 */
 
-#ifndef _SCC_GridFunction1dUtility_
-#define _SCC_GridFunction1dUtility_
+#ifndef SCC_GRID_FUNCTION_1D_UTILITY_
+#define SCC_GRID_FUNCTION_1D_UTILITY_
 
 
 #include <iostream>
@@ -614,4 +614,4 @@ To('..')
 #pragma warning(pop)
 #endif
 
-#endif /* SCC_GRIDFUNCTION_SCC_GRIDFUNCTION1DUTILITY_H_ */
+#endif /* SCC_GRIDFUNCTIONSCC_GRIDFUNCTION1DUTILITY_H_ */

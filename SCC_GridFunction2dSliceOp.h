@@ -48,8 +48,8 @@
 ###
 */
 
-#ifndef _SCC_GridFunction2dSliceOp_
-#define _SCC_GridFunction2dSliceOp_
+#ifndef SCC_GRID_FUNCTION_2D_SLICE_OP_
+#define SCC_GRID_FUNCTION_2D_SLICE_OP_
 
 #include "SCC_GridFunction1d.h"
 #include "SCC_GridFunction2d.h"

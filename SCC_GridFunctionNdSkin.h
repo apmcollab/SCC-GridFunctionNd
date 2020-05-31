@@ -66,8 +66,8 @@
 #include "SCC_GridFunction2d.h"
 #include "SCC_GridFunction3d.h"
 
-#ifndef _SCC_GridFunctionNdSkin_
-#define _SCC_GridFunctionNdSkin_
+#ifndef SCC_GRID_FUNCTION_ND_SKIN_
+#define SCC_GRID_FUNCTION_ND_SKIN_
 
 namespace SCC
 {
@@ -270,4 +270,4 @@ public:
 
 
 
-#endif /*_SCC_GridFunctionNdSkin_*/
+#endif /*SCC_GridFunctionNdSkin_*/

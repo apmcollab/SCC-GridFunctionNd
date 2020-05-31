@@ -38,8 +38,8 @@
 #############################################################################
 */
 
-#ifndef _SCC_GridFunction3d_
-#define _SCC_GridFunction3d_
+#ifndef SCC_GRID_FUNCTION_3D_
+#define SCC_GRID_FUNCTION_3D_
 
 
 #include "SCC_GridFunction1d.h"
@@ -48,6 +48,11 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+
+#ifdef _MSC_VER
+#include "iso646.h"          // So "and" is equivalenced to &&
+typedef unsigned int uint;   // Define uint to be unsigned int
+#endif
 
 #include "../DoubleVectorNd/SCC_DoubleVector3d.h"
 
@@ -997,7 +1002,7 @@ double getTrapezoidalAverage() const
 }
 
 
-double min() const
+double getMin() const
 {
 //  Compute function minimum
 
@@ -1011,7 +1016,7 @@ double min() const
 
 }
 
-double max() const
+double getMax() const
 {
 //  Compute function maximum
 
@@ -1422,4 +1427,4 @@ bool isCoincident(const GridFunction3d& V)
 }
 
 
-#endif /* SCC_GRIDFUNCTION_SCC_GRIDFUNCTION1D_H_ */
+#endif /* SCC_GRIDFUNCTIONSCC_GRIDFUNCTION1D_H_ */

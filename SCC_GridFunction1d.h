@@ -42,17 +42,27 @@
 #############################################################################
 */
 
-#ifndef _SCC_GridFunction1d_
-#define _SCC_GridFunction1d_
+#ifndef SCC_GRID_FUNCTION_1D_
+#define SCC_GRID_FUNCTION_1D_
 
 #include <functional>
 #include <iostream>
 #include <cmath>
 
+#ifdef _MSC_VER
+#include "iso646.h"          // So "and" is equivalenced to &&
+typedef unsigned int uint;   // Define uint to be unsigned int
+#endif
+
 #include "../DoubleVectorNd/SCC_DoubleVector1d.h"
 
 namespace SCC
 {
+
+
+
+
+
 class GridFunction1d : public DoubleVector1d
 {
 
@@ -494,7 +504,7 @@ double getTrapezoidalAverage() const
 }
 
 
-double min() const
+double getMin() const
 {
 //  Compute function minimum
 
@@ -506,7 +516,7 @@ double min() const
     return minValue;
 }
 
-double max() const
+double getMax() const
 {
 
 //  Compute function maximum
@@ -578,4 +588,4 @@ protected :
 }
 
 
-#endif /* SCC_GRIDFUNCTION_SCC_GRIDFUNCTION1D_H_ */
+#endif /* SCC_GRIDFUNCTIONSCC_GRIDFUNCTION1D_H_ */
