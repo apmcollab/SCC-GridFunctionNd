@@ -38,6 +38,7 @@
 #############################################################################
 */
 
+
 #ifndef SCC_GRID_FUNCTION_3D_
 #define SCC_GRID_FUNCTION_3D_
 
@@ -52,6 +53,8 @@
 #ifdef _MSC_VER
 #include "iso646.h"          // So "and" is equivalenced to &&
 typedef unsigned int uint;   // Define uint to be unsigned int
+#undef min
+#undef max
 #endif
 
 #include "../DoubleVectorNd/SCC_DoubleVector3d.h"
@@ -1002,7 +1005,7 @@ double getTrapezoidalAverage() const
 }
 
 
-double getMin() const
+double min() const
 {
 //  Compute function minimum
 
@@ -1016,7 +1019,7 @@ double getMin() const
 
 }
 
-double getMax() const
+double max() const
 {
 //  Compute function maximum
 

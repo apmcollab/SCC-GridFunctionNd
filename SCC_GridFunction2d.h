@@ -48,6 +48,8 @@
 #ifdef _MSC_VER
 #include "iso646.h"          // So "and" is equivalenced to &&
 typedef unsigned int uint;   // Define uint to be unsigned int
+#undef min
+#undef max
 #endif
 
 #include "../GridFunctionNd/SCC_GridFunction1d.h"
@@ -731,7 +733,7 @@ double getTrapezoidalAverage() const
     return avgValue/((xMax-xMin)*(yMax-yMin));
 }
 
-double getMin() const
+double min() const
 {
 //  Compute function minimum
 
@@ -743,7 +745,7 @@ double getMin() const
     return minValue;
 }
 
-double getMax() const
+double max() const
 {
 //  Compute function maximum
 
