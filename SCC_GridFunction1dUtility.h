@@ -285,7 +285,7 @@ void outputToVeusz(const GridFunction1d& gF, const std::string& fileName, const 
 
 	outputToGNUplot(gF, fileName,formatString);
 
-	int lastindex    = fileName.find_last_of(".");
+	int lastindex    = (int) fileName.find_last_of(".");
     std::string baseName  = fileName.substr(0, lastindex);
     std::string veuszName = baseName;
     veuszName.append(".vsz");
