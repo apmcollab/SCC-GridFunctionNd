@@ -875,6 +875,20 @@ bool isCoincident(const GridFunction2d& V)
     return true;
 }
 
+/*! BLAS axpby : this  <- alpha*v + beta*this  */
+
+   void axpby(double alpha, const DoubleVector2d& G, double beta)
+   {
+   SCC::DoubleVector2d::axpby(alpha,G,beta);
+   }
+
+/*! BLAS axpy : this  <- alpha*v + this  */
+
+   void axpy(double alpha, const DoubleVector2d& G)
+   {
+   SCC::DoubleVector2d::axpy(alpha,G);
+   }
+
 //  Grid Geometry
 
 double xMin; double xMax;   // Computational Region is [xMin,xMax]x

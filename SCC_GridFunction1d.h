@@ -558,6 +558,20 @@ bool isCoincident(const GridFunction1d& V)
     return true;
 }
 
+/*! BLAS axpby : this  <- alpha*v + beta*this  */
+
+   void axpby(double alpha, const DoubleVector1d& G, double beta)
+   {
+   SCC::DoubleVector1d::axpby(alpha,G,beta);
+   }
+
+/*! BLAS axpy : this  <- alpha*v + this  */
+
+   void axpy(double alpha, const DoubleVector1d& G)
+   {
+   SCC::DoubleVector1d::axpy(alpha,G);
+   }
+
 //
 //  Grid Geometry
 //
