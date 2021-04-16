@@ -83,6 +83,10 @@ GridFunction3d() : DoubleVector3d()
     this->yMax = 1.0;
     this->zMin = 0.0;
     this->zMax = 1.0;
+
+
+    this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 GridFunction3d(const GridFunction3d& G) : DoubleVector3d(G)
@@ -101,6 +105,9 @@ GridFunction3d(const GridFunction3d& G) : DoubleVector3d(G)
     this->yMax = G.yMax;
     this->zMin = G.zMin;
     this->zMax = G.zMax;
+
+    this->XYperiodicityFlag  = G.XYperiodicityFlag;
+    this->XYZperiodicityFlag = G.XYZperiodicityFlag;
 }
 
 
@@ -120,6 +127,10 @@ GridFunction3d(DoubleVector3d&& G) : DoubleVector3d((DoubleVector3d&&)G)
     this->yMax = 1.0;
     this->zMin = 0.0;
     this->zMax = 1.0;
+
+
+    this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 
@@ -142,6 +153,9 @@ GridFunction3d(long xPanels, double hx, long yPanels, double hy, long zPanels, d
     this->zMax =  (zPanels*hz)/2.0;
 
 	this->setToValue(0.0);
+
+    this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 
@@ -164,6 +178,9 @@ GridFunction3d(long xPanels, double xMin, double xMax, long yPanels, double yMin
     this->hz     = (zMax-zMin)/(double)(zPanels);
 
 	this->setToValue(0.0);
+
+    this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 
@@ -183,6 +200,9 @@ GridFunction3d(GridFunction3d&& G) : DoubleVector3d((DoubleVector3d&&)G)
     this->yMax = G.yMax;
     this->zMin = G.zMin;
     this->zMax = G.zMax;
+
+    this->XYperiodicityFlag  = G.XYperiodicityFlag;
+    this->XYZperiodicityFlag = G.XYZperiodicityFlag;
 }
 
 virtual ~GridFunction3d(){}
@@ -209,6 +229,10 @@ if(this->dataPtr == nullptr)
     this->yMax = G.yMax;
     this->zMin = G.zMin;
     this->zMax = G.zMax;
+
+
+    this->XYperiodicityFlag  = G.XYperiodicityFlag;
+    this->XYZperiodicityFlag = G.XYZperiodicityFlag;
 }
 
 // Propagate values
@@ -402,6 +426,9 @@ void initialize()
     this->yMax = 1.0;
     this->zMin = 0.0;
     this->zMax = 1.0;
+
+    this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 void initialize(const GridFunction3d& G)
@@ -421,6 +448,9 @@ void initialize(const GridFunction3d& G)
     this->yMax = G.yMax;
     this->zMin = G.zMin;
     this->zMax = G.zMax;
+
+    this->XYperiodicityFlag  = G.XYperiodicityFlag;
+    this->XYZperiodicityFlag = G.XYZperiodicityFlag;
 }
 
 void initialize(long xPanels, double hx, long yPanels, double hy, long zPanels, double hz)
@@ -442,6 +472,9 @@ void initialize(long xPanels, double hx, long yPanels, double hy, long zPanels, 
     this->zMax =  (zPanels*hz)/2.0;
 
 	this->setToValue(0.0);
+
+	this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 
@@ -465,6 +498,9 @@ void initialize(long xPanels, double xMin, double xMax, long yPanels, double yMi
     this->hz     = (zMax-zMin)/(double)(zPanels);
 
 	this->setToValue(0.0);
+
+	this->XYperiodicityFlag  = false;
+    this->XYZperiodicityFlag = false;
 }
 
 GridFunction3d* newDuplicate() const
@@ -477,6 +513,76 @@ bool isNull()
 {
 if(dataPtr == nullptr) return true;
 return false;
+}
+
+void setPeriodicity(bool val = true)
+{
+	if(val)
+	{
+		XYZperiodicityFlag = true;
+	    enforcePeriodicity();
+	}
+}
+
+// Clears all types of periodicity
+
+void clearPeriodicity()
+{
+	XYZperiodicityFlag = false;
+	XYperiodicityFlag = false;
+}
+
+void setXYperiodicity(bool val = true)
+{
+	if(val)
+	{
+		XYperiodicityFlag = true;
+	    enforceXYperiodicity();
+	}
+}
+
+void clearXYZperiodicity()
+{
+	XYZperiodicityFlag = false;
+}
+
+void setXYZperiodicity(bool val = true)
+{
+	if(val)
+	{
+		XYZperiodicityFlag = true;
+	    enforcePeriodicity();
+	}
+}
+
+void clearXYperiodicity()
+{
+	XYperiodicityFlag = false;
+}
+
+/*!  Returns the size of the number of independent values
+     associated with the grid function, i.e. the dimension
+     corresponding to the vector of independent function
+     values.
+
+     This dimension depends upon the specified boundary values.
+*/
+
+virtual long getDimension() const
+{
+	long dimension;
+
+    if(not (XYperiodicityFlag || XYZperiodicityFlag))
+    {
+    	dimension = DoubleVector3d::getDimension();
+    }
+    else
+    {
+    	if(XYperiodicityFlag)  {dimension = (index1Size-1)*(index2Size-1)*(index3Size);}
+    	if(XYZperiodicityFlag) {dimension = (index1Size-1)*(index2Size-1)*(index3Size-1);}
+    }
+
+    return dimension;
 }
 
 void createProductFunction(const GridFunction1d& funX, const GridFunction1d& funY, const GridFunction1d& funZ)
@@ -501,6 +607,10 @@ void createProductFunction(const GridFunction1d& funX, const GridFunction1d& fun
 
 	Values(i,j,k) = fX*fY*fZ;
 	}}}
+
+	if(XYperiodicityFlag){enforceXYperiodicity();}
+	if(XYZperiodicityFlag){enforcePeriodicity();}
+
 }
 
 void createProductFunction(const GridFunction2d& funXY,  const GridFunction1d& funZ)
@@ -525,6 +635,9 @@ void createProductFunction(const GridFunction2d& funXY,  const GridFunction1d& f
 
 	Values(i,j,k) = fXY*fZ;
 	}}}
+
+	if(XYperiodicityFlag){enforceXYperiodicity();}
+	if(XYZperiodicityFlag){enforcePeriodicity();}
 }
 
 void createProductFunction(const GridFunction1d& funX,const  GridFunction2d& funYZ)
@@ -548,6 +661,9 @@ void createProductFunction(const GridFunction1d& funX,const  GridFunction2d& fun
 	fYZ = funYZ(j,k);
 	Values(i,j,k) = fX*fYZ;
 	}}}
+
+    if(XYperiodicityFlag){enforceXYperiodicity();}
+	if(XYZperiodicityFlag){enforcePeriodicity();}
 }
 
 
@@ -565,6 +681,9 @@ void specify(std::function<double(double,double,double)> F)
     zPos = zMin + k*hz;
     Values(i,j,k) = F(xPos,yPos,zPos);
     }}}
+
+    if(XYperiodicityFlag){enforceXYperiodicity();}
+	if(XYZperiodicityFlag){enforcePeriodicity();}
 }
 
 void squareValues()
@@ -577,6 +696,20 @@ void zeroNegativePart()
     transformValues([](double x){if(x < 0.0){return 0.0;} return x;});
 }
 
+
+//
+// Important: the dot product for this class is a mesh
+// scaled inner product based upon the Trapezoidal rule.
+//
+// If the function is periodic, or satisfies homogeneous boundary
+// conditions, then the inner product computed is identical
+// to the standard inner product of all independent function
+// values times a product of the mesh sizes.
+//
+double dot(const GridFunction3d& V) const
+{
+	return scaledDot(V);
+}
 //
 // Dot product of all values scaled with mesh widths
 //           (Trapezoidal Method)
@@ -956,6 +1089,12 @@ double norm2() const
     return std::sqrt(std::abs(integralTrapezoidal([](double x){return x*x;})));
 }
 
+double nrm2() const
+{
+    return std::sqrt(std::abs(integralTrapezoidal([](double x){return x*x;})));
+}
+
+
 // 2-Norm^2 computed using the trapezoidal rule approximation
 
 double norm2squared() const
@@ -1211,10 +1350,13 @@ void setConstantXYslice(long xIndex, long yIndex,const GridFunction1d& R)    //(
 }
 
 
+virtual bool isXperiodic()   const {return (XYperiodicityFlag  || XYZperiodicityFlag);}
+virtual bool isYperiodic()   const {return (XYperiodicityFlag  || XYZperiodicityFlag);}
+virtual bool isZperiodic()   const {return (XYZperiodicityFlag); }
 
-virtual int isXperiodic() const {return 0;}
-virtual int isYperiodic() const {return 0;}
-virtual int isZperiodic() const {return 0;}
+virtual bool isXYperiodic()  const {return (XYperiodicityFlag  || XYZperiodicityFlag);}
+virtual bool isXYZperiodic() const {return (XYZperiodicityFlag);}
+
 
 double getHx()   const  {return            hx;}
 double getXmin() const  {return          xMin;}
@@ -1305,8 +1447,14 @@ void setBoundaryValues(double value)
     }}
 }
 
+//
+// Enforces periodicity in all three x,y,z coordinate directions
+//
 void enforcePeriodicity()
 {
+	XYZperiodicityFlag = true;
+    if(this->isNull()){return;}
+
     long i; long j; long k;
 
     i = xPanels;
@@ -1331,6 +1479,32 @@ void enforcePeriodicity()
     for(j = 0; j <= yPanels; j++)
     {
     Values(i,j,k) = Values(i,j,0);
+    }}
+}
+
+// Enforces periodicity in the x-y coordinate directions
+
+void enforceXYperiodicity()
+{
+	XYperiodicityFlag = true;
+	if(this->isNull()){return;}
+
+    long i; long j; long k;
+
+    i = xPanels;
+    for(j = 0; j <= yPanels; j++)
+    {
+    for(k = 0; k <= zPanels; k++)
+    {
+     Values(i,j,k) = Values(0,j,k);
+    }}
+
+    j = yPanels;
+    for(i = 0; i <= xPanels; i++)
+    {
+    for(k = 0; k <= zPanels; k++)
+    {
+    Values(i,j,k) = Values(i,0,k);
     }}
 }
 
@@ -1381,6 +1555,9 @@ bool isCoincident(const GridFunction3d& V)
     double hx;                  // mesh width
     double hy;
     double hz;
+
+    bool  XYperiodicityFlag;     // indicates periodicity in the XY direction
+    bool XYZperiodicityFlag;     // indicates periodicity in the XYZ direction
 
 //###################################################################
 //          Values Access (Alternative to operator())
@@ -1437,6 +1614,7 @@ bool isCoincident(const GridFunction3d& V)
 #else
         bool domainCheck() const {return true;}
 #endif
+
 
 
 };

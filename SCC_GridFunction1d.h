@@ -61,10 +61,6 @@ typedef unsigned int uint;   // Define uint to be unsigned int
 namespace SCC
 {
 
-
-
-
-
 class GridFunction1d : public DoubleVector1d
 {
 
@@ -76,6 +72,8 @@ GridFunction1d() : DoubleVector1d()
 	this->xMax    = 1.0;
 	this->xPanels = 0;
 	this->hx      = 0.0;
+
+	this->XperiodicityFlag = false;
 }
 
 GridFunction1d(const GridFunction1d& G) : DoubleVector1d(G)
@@ -84,6 +82,8 @@ GridFunction1d(const GridFunction1d& G) : DoubleVector1d(G)
 	this->xMax    = G.xMax;
 	this->xPanels = G.xPanels;
 	this->hx      = G.hx;
+
+    this->XperiodicityFlag = G.XperiodicityFlag;
 }
 
 GridFunction1d(DoubleVector1d&& G) : DoubleVector1d((DoubleVector1d&&)G)
@@ -92,6 +92,8 @@ GridFunction1d(DoubleVector1d&& G) : DoubleVector1d((DoubleVector1d&&)G)
 	this->xMax    = 1.0;
 	this->xPanels = 0;
 	this->hx      = 0.0;
+
+	this->XperiodicityFlag = false;
 }
 
 
@@ -102,6 +104,8 @@ GridFunction1d(long xPanels, double hx) : DoubleVector1d(xPanels+1)
     this->xMin    = -(xPanels*hx)/2.0;
     this->xMax    =  (xPanels*hx)/2.0;
 	this->setToValue(0.0);
+
+	this->XperiodicityFlag = false;
 }
 
 
@@ -112,6 +116,8 @@ GridFunction1d(long xPanels, double xMin, double xMax) : DoubleVector1d(xPanels+
 	this->xPanels = xPanels;
 	this->hx      = (xMax-xMin)/(double)xPanels;
 	this->setToValue(0.0);
+
+	this->XperiodicityFlag = false;
 }
 
 
@@ -121,6 +127,8 @@ GridFunction1d(GridFunction1d&& G) : DoubleVector1d((DoubleVector1d&&)G)
 	this->xMax    = G.xMax;
 	this->xPanels = G.xPanels;
 	this->hx      = G.hx;
+
+	this->XperiodicityFlag = G.XperiodicityFlag;
 }
 
 virtual ~GridFunction1d(){}
@@ -134,6 +142,8 @@ void initialize()
 	xMax    = 1.0;
 	xPanels = 0;
 	hx      = 0.0;
+
+	XperiodicityFlag = false;
 }
 
 void initialize(const GridFunction1d& G)
@@ -143,6 +153,8 @@ void initialize(const GridFunction1d& G)
 	xMax    = G.xMax;
 	xPanels = G.xPanels;
 	hx      = G.hx;
+
+	XperiodicityFlag = G.XperiodicityFlag;
 }
 
 void initialize(long xPanels, double hx)
@@ -152,8 +164,9 @@ void initialize(long xPanels, double hx)
 	this->xMax    = xPanels*hx;
 	this->xPanels = xPanels;
 	this->hx      = hx;
-}
 
+	this->XperiodicityFlag = false;
+}
 
 void initialize(long xPanels, double xMin, double xMax)
 {
@@ -162,6 +175,8 @@ void initialize(long xPanels, double xMin, double xMax)
 	this->xMax    = xMax;
 	this->xPanels = xPanels;
 	this->hx      = (xMax-xMin)/(double)xPanels;
+
+	this->XperiodicityFlag = false;
 }
 
 GridFunction1d* newDuplicate() const
@@ -181,8 +196,6 @@ double getHx()          const  {return     hx;}
 double getXmin()        const  {return   xMin;}
 double getXmax()        const  {return   xMax;}
 
-virtual bool isXperiodic() const {return false;}
-
 DoubleVector1d getValues() const
 {
     return DoubleVector1d(*this);
@@ -197,6 +210,58 @@ const DoubleVector1d* getValuesPointer() const
 {
     return (DoubleVector1d*)this;
 }
+
+virtual bool isXperiodic()  const {return XperiodicityFlag;}
+
+
+void setPeriodicity(bool val = true)
+{
+	if(val)
+	{
+		XperiodicityFlag = true;
+	    enforcePeriodicity();
+	}
+}
+
+void clearPeriodicity()
+{
+	XperiodicityFlag = false;
+}
+
+
+void setXperiodicity(bool val = true)
+{
+	if(val)
+	{
+		XperiodicityFlag = true;
+	    enforcePeriodicity();
+	}
+}
+
+void clearXperiodicity()
+{
+	XperiodicityFlag = false;
+}
+
+/*!  Returns the size of the number of independent values
+     associated with the grid function, i.e. the dimension
+     corresponding to the vector of independent function
+     values.
+
+     This dimension depends upon the specified boundary values.
+*/
+
+virtual long getDimension() const
+{
+	long dimension = DoubleVector1d::getDimension();
+
+    if(XperiodicityFlag)
+    {
+    	dimension -=1;
+    }
+    return dimension;
+}
+
 
 
 //###################################################################
@@ -405,6 +470,20 @@ void zeroNegativePart()
     transformValues([](double x){if(x < 0.0){return 0.0;} return x;});
 }
 
+//
+// Important: the dot product for this class is a mesh
+// scaled inner product based upon the Trapezoidal rule.
+//
+// If the function is periodic, or satisfies homogeneous boundary
+// conditions, then the inner product computed is identical
+// to the standard inner product of all independent function
+// values times the mesh size.
+//
+double dot(const GridFunction1d& V) const
+{
+	return scaledDot(V);
+}
+
 // Dot product scaled with mesh widths
 //
 // Trapezoidal approximation of the integral
@@ -458,6 +537,11 @@ double integralTrapezoidal() const
 }
 
 // 2-Norm^2 computed using the trapezoidal rule approximation
+
+double nrm2() const
+{
+	return norm2();
+}
 
 double norm2() const
 {
@@ -539,6 +623,9 @@ void setBoundaryValues(double value)
 
 void enforcePeriodicity()
 {
+	XperiodicityFlag = true;
+	if(this->isNull()){return;}
+
     Values(xPanels) = Values(0);
 }
 
@@ -579,6 +666,7 @@ bool isCoincident(const GridFunction1d& V)
     long   xPanels;             // Number of panels
     double hx;                  // mesh width
 
+    bool XperiodicityFlag;
 
 protected :
 
