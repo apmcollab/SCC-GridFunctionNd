@@ -623,6 +623,8 @@ void zeroNegativePart()
 // to the standard inner product of all independent function
 // values times a product of the mesh sizes.
 //
+using DoubleVector2d::dot;
+    
 double dot(const GridFunction2d& V) const
 {
 	return scaledDot(V);
