@@ -76,6 +76,8 @@ GridFunction2d() : DoubleVector2d()
     this->yMax = 1.0;
 
     this->XYperiodicityFlag = false;
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 }
 
 GridFunction2d(const GridFunction2d& G) : DoubleVector2d(G)
@@ -92,6 +94,8 @@ GridFunction2d(const GridFunction2d& G) : DoubleVector2d(G)
     this->yMax = G.yMax;
 
     this->XYperiodicityFlag = G.XYperiodicityFlag;
+    this->XperiodicityFlag  = G.XperiodicityFlag;
+    this->YperiodicityFlag  = G.YperiodicityFlag;
 }
 
 
@@ -109,6 +113,8 @@ GridFunction2d(DoubleVector2d&& G) : DoubleVector2d((DoubleVector2d&&)G)
     this->yMax = 1.0;
 
     this->XYperiodicityFlag = false;
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 }
 
 
@@ -127,7 +133,8 @@ GridFunction2d(long xPanels, double hx, long yPanels, double hy)
     this->yMax =  (yPanels*hy)/2.0;
 
     this->XYperiodicityFlag = false;
-
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 	this->setToValue(0.0);
 }
 
@@ -147,7 +154,8 @@ GridFunction2d(long xPanels, double xMin, double xMax, long yPanels, double yMin
     this->hy     = (yMax-yMin)/(double)(yPanels);
 
     this->XYperiodicityFlag = false;
-
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 	this->setToValue(0.0);
 }
 
@@ -166,6 +174,8 @@ GridFunction2d(GridFunction2d&& G) : DoubleVector2d((DoubleVector2d&&)G)
     this->yMax = G.yMax;
 
     this->XYperiodicityFlag = G.XYperiodicityFlag;
+    this->XperiodicityFlag  = G.XperiodicityFlag;
+    this->YperiodicityFlag  = G.YperiodicityFlag;
 }
 
 virtual ~GridFunction2d(){}
@@ -187,6 +197,8 @@ void initialize()
     this->yMax = 1.0;
 
     this->XYperiodicityFlag = false;
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 }
 
 void initialize(const GridFunction2d& G)
@@ -204,6 +216,9 @@ void initialize(const GridFunction2d& G)
     this->yMax = G.yMax;
 
     this->XYperiodicityFlag = G.XYperiodicityFlag;
+    this->XperiodicityFlag  = G.XperiodicityFlag;
+    this->YperiodicityFlag  = G.YperiodicityFlag;
+
 }
 
 void initialize(long xPanels, double hx, long yPanels, double hy)
@@ -222,6 +237,8 @@ void initialize(long xPanels, double hx, long yPanels, double hy)
     this->yMax =  (yPanels*hy)/2.0;
 
     this->XYperiodicityFlag = false;
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 
 	this->setToValue(0.0);
 }
@@ -242,6 +259,8 @@ void initialize(long xPanels, double xMin, double xMax, long yPanels, double yMi
     this->hy     = (yMax-yMin)/(double)(yPanels);
 
     this->XYperiodicityFlag = false;
+    this->XperiodicityFlag  = false;
+    this->YperiodicityFlag  = false;
 
 	this->setToValue(0.0);
 }
@@ -270,8 +289,8 @@ double getYmax() const  {return yMax;}
 long   getYpanelCount() const {return yPanels;}
 
 virtual bool isXYperiodic() const {return XYperiodicityFlag;}
-virtual bool isXperiodic()  const {return XYperiodicityFlag;}
-virtual bool isYperiodic()  const {return XYperiodicityFlag;}
+virtual bool isXperiodic()  const {return XperiodicityFlag;}
+virtual bool isYperiodic()  const {return YperiodicityFlag;}
 
 DoubleVector2d getValues() const
 {
@@ -317,6 +336,35 @@ void clearXYperiodicity()
 	XYperiodicityFlag = false;
 }
 
+void setXperiodicity(bool val = true)
+{
+	if(val)
+	{
+		XperiodicityFlag = true;
+	    enforceXperiodicity();
+	}
+}
+
+void clearXperiodicity()
+{
+	XperiodicityFlag = false;
+}
+
+void setYperiodicity(bool val = true)
+{
+	if(val)
+	{
+		YperiodicityFlag = true;
+	    enforceYperiodicity();;
+	}
+}
+
+void clearYperiodicity()
+{
+	YperiodicityFlag = false;
+}
+
+
 /*!  Returns the size of the number of independent values
      associated with the grid function, i.e. the dimension
      corresponding to the vector of independent function
@@ -333,9 +381,17 @@ virtual long getDimension() const
     {
     	dimension = DoubleVector2d::getDimension();
     }
-    else
+    else if(XYperiodicityFlag)
     {
     	dimension = (index1Size-1)*(index2Size-1);
+    }
+    else if(XperiodicityFlag)
+    {
+    	dimension = (index1Size-1)*(index2Size);
+    }
+    else if(YperiodicityFlag)
+    {
+    	dimension = (index1Size)*(index2Size-1);
     }
 
     return dimension;
@@ -585,6 +641,8 @@ void createProductFunction(const GridFunction1d& funX, const GridFunction1d& fun
 	}}
 
 	if(XYperiodicityFlag) {enforcePeriodicity();}
+	if(XperiodicityFlag)  {enforceXperiodicity();}
+	if(YperiodicityFlag)  {enforceYperiodicity();}
 }
 
 
@@ -601,6 +659,8 @@ void specify(const std::function<double(double,double)>& F)
     }}
 
 	if(XYperiodicityFlag) {enforcePeriodicity();}
+	if(XperiodicityFlag)  {enforceXperiodicity();}
+	if(YperiodicityFlag)  {enforceYperiodicity();}
 }
 
 void squareValues()
@@ -952,6 +1012,11 @@ void setBoundaryValues(double value)
 // (xMax,y) and (x,yMax) to enforce periodicity.
 //
 
+void enforceXYperiodicity()
+{
+	enforcePeriodicity();
+}
+
 void enforcePeriodicity()
 {
 	XYperiodicityFlag = true;
@@ -965,6 +1030,36 @@ void enforcePeriodicity()
     {
      Values(i,j) = Values(0,j);
     }
+
+    j = yPanels;
+    for(i = 0; i <= xPanels; i++)
+    {
+    Values(i,j) = Values(i,0);
+    }
+}
+
+void enforceXperiodicity()
+{
+	XperiodicityFlag = true;
+
+	if(this->isNull()){return;}
+
+    long i; long j;
+
+    i = xPanels;
+    for(j = 0; j <= yPanels; j++)
+    {
+     Values(i,j) = Values(0,j);
+    }
+}
+
+void enforceYperiodicity()
+{
+	YperiodicityFlag = true;
+
+	if(this->isNull()){return;}
+
+    long i; long j;
 
     j = yPanels;
     for(i = 0; i <= xPanels; i++)
@@ -1018,7 +1113,8 @@ double hx;                  // mesh width
 double hy;
 
 bool XYperiodicityFlag;     // indicates periodicity in the XY direction
-
+bool XperiodicityFlag;      // indicates periodicity in the X direction
+bool YperiodicityFlag;      // indicates periodicity in the Y direction
 
 //###################################################################
 //                     Error Checking
