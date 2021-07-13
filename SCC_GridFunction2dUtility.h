@@ -171,7 +171,7 @@ void outputToGNUplot(GridFunction2d& gF, const std::string& fileName, const std:
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    bool errFlag;
+    bool errFlag = false;
     char poundChar;
 
     long i;       long j;

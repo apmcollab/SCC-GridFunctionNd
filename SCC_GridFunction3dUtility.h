@@ -364,7 +364,6 @@ void outputToDataFile(const GridFunction3d& gF, const std::string& fileName, con
 void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
 	bool errFlag = false;
-	size_t rValue = 0;
 
     long xPanels; long yPanels; long zPanels;
 
