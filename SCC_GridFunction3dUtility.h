@@ -363,6 +363,7 @@ void outputToDataFile(const GridFunction3d& gF, const std::string& fileName, con
 
 void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
+	bool errFlag = false;
 	size_t rValue = 0;
 
     long xPanels; long yPanels; long zPanels;
@@ -370,23 +371,23 @@ void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName 
     double xMin; double yMin; double zMin;
     double xMax; double yMax; double zMax;
 
-    rValue = fscanf(dataFile,"%ld", &xPanels) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%ld", &yPanels) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%ld", &zPanels) != 1 ? 1 : rValue;
-    rValue = fscanf(dataFile,"%lf", &xMin)    != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf", &xMax)    != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf", &yMin)    != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf", &yMax)    != 1 ? 1 : rValue;
-    rValue = fscanf(dataFile,"%lf", &zMin)    != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf", &zMax)    != 1 ? 1 : rValue;
+    errFlag = (fscanf(dataFile,"%ld", &xPanels) != 1  ) || errFlag;
+	errFlag = (fscanf(dataFile,"%ld", &yPanels) != 1  ) || errFlag;
+	errFlag = (fscanf(dataFile,"%ld", &zPanels) != 1  ) || errFlag;
+    errFlag = (fscanf(dataFile,"%lf", &xMin)    != 1  ) || errFlag;
+	errFlag = (fscanf(dataFile,"%lf", &xMax)    != 1  ) || errFlag;
+	errFlag = (fscanf(dataFile,"%lf", &yMin)    != 1  ) || errFlag;
+	errFlag = (fscanf(dataFile,"%lf", &yMax)    != 1  ) || errFlag;
+    errFlag = (fscanf(dataFile,"%lf", &zMin)    != 1  ) || errFlag;
+	errFlag = (fscanf(dataFile,"%lf", &zMax)    != 1  ) || errFlag;
 
-	rValue = (xPanels <= 0) ? 1 : rValue;
-    rValue = (yPanels <= 0) ? 1 : rValue;
-    rValue = (zPanels <= 0) ? 1 : rValue;
+	errFlag = (xPanels <= 0 ) || errFlag;
+    errFlag = (yPanels <= 0 ) || errFlag;
+    errFlag = (zPanels <= 0 ) || errFlag;
 
-	rValue = (xMax < xMin) ? 1 : rValue;
-    rValue = (yMax < yMin) ? 1 : rValue;
-    rValue = (zMax < zMin) ? 1 : rValue;
+	errFlag = (xMax < xMin ) || errFlag;
+    errFlag = (yMax < yMin ) || errFlag;
+    errFlag = (zMax < zMin ) || errFlag;
 
     gF.initialize(xPanels,xMin,xMax,yPanels,yMin,yMax,zPanels,zMin,zMax);
 
@@ -396,11 +397,11 @@ void inputFromDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName 
     {
 	for(long k = 0; k <= zPanels; k++)
     {
-    rValue = fscanf(dataFile,"%lf",&gF(i,j,k)) != 1 ? 1 : rValue;
+    errFlag = (fscanf(dataFile,"%lf",&gF(i,j,k)) != 1  ) || errFlag;
     }
     }}
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
     }
@@ -506,7 +507,6 @@ void inputFromBinaryDataFile(GridFunction3d& gF, const std::string& fileName, in
 
 void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
-	size_t rValue;
     size_t dataSize;
 
     long xPanels; long yPanels; long zPanels;
@@ -518,34 +518,34 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fil
 	std::int64_t yPanels64;
 	std::int64_t zPanels64;
 
-	rValue = 0;
+	bool errFlag = false;
 
-	rValue = fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&yPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&zPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	errFlag = (fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&yPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&zPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
 
-	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	errFlag = (fread(&xMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&xMax,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 
-	rValue = fread(&yMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&yMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	errFlag = (fread(&yMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&yMax,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 
-	rValue = fread(&zMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&zMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	errFlag = (fread(&zMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&zMax,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 
 	xPanels = (long)xPanels64;
 	yPanels = (long)yPanels64;
 	zPanels = (long)zPanels64;
 
-    rValue = (xMax < xMin) ? 1 : rValue;
-    rValue = (yMax < yMin) ? 1 : rValue;
-    rValue = (zMax < zMin) ? 1 : rValue;
+    errFlag = (xMax < xMin) || errFlag;
+    errFlag = (yMax < yMin) || errFlag;
+    errFlag = (zMax < zMin) || errFlag;
 
-	rValue = (xPanels <= 0) ? 1 : rValue;
-    rValue = (yPanels <= 0) ? 1 : rValue;
-    rValue = (zPanels <= 0) ? 1 : rValue;
+	errFlag = (xPanels <= 0) || errFlag;
+    errFlag = (yPanels <= 0) || errFlag;
+    errFlag = (zPanels <= 0) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
     }
@@ -556,9 +556,9 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fil
 
 	dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
+	errFlag = (fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction3d could not be initialized from file " + fileName + " \n");
     }
@@ -567,22 +567,22 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fil
 
 void inputValuesFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fileName = "")
 {
-	size_t rValue = 0;
+	bool errFlag = false;
     size_t dataSize;
 
     long xPanels = gF.getXpanelCount();
     long yPanels = gF.getYpanelCount();
 	long zPanels = gF.getZpanelCount();
 
-    rValue = (xPanels <= 0) ? 1 : rValue;
-    rValue = (yPanels <= 0) ? 1 : rValue;
-    rValue = (zPanels <= 0) ? 1 : rValue;
+    errFlag = (xPanels <= 0)  || errFlag;
+    errFlag = (yPanels <= 0)  || errFlag;
+    errFlag = (zPanels <= 0)  || errFlag;
 
 	dataSize = (xPanels+1)*(yPanels+1)*(zPanels+1);
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
+	errFlag = (fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize  ) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nValues from SCC::GridFunction3d could not be read from file " + fileName + " \n");
     }

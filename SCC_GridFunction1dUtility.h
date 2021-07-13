@@ -239,35 +239,34 @@ void inputFromGNUplot(GridFunction1d& gF, const std::string& fileName)
       throw std::runtime_error("\nCannot open " + fileName + " \nFile not found.\n");
     }
 
-    size_t rValue = 0;
+    bool errFlag = false;
 
     char poundChar;
     long xPanels;
     double xMin; double xMax;
 
-    rValue = fscanf(dataFile,"%c", &poundChar)  != 1 ? 1 : rValue;   // remove leading #
-    rValue = fscanf(dataFile,"%ld",&xPanels)    != 1 ? 1 : rValue;
-    rValue = fscanf(dataFile,"%lf",&xMin)       != 1 ? 1 : rValue;
-    rValue = fscanf(dataFile,"%lf",&xMax)       != 1 ? 1 : rValue;
+    errFlag = (fscanf(dataFile,"%c", &poundChar)  != 1 ) || errFlag;  // remove leading #
+    errFlag = (fscanf(dataFile,"%ld",&xPanels)    != 1 ) || errFlag;
+    errFlag = (fscanf(dataFile,"%lf",&xMin)       != 1 ) || errFlag;
+    errFlag = (fscanf(dataFile,"%lf",&xMax)       != 1 ) || errFlag;
 
-    rValue = (xMax < xMin)  ? 1 : rValue;
-    rValue = (xPanels <= 0) ? 1 : rValue;
+    errFlag = (xMax < xMin)  || errFlag;
+    errFlag = (xPanels <= 0) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from gnuplot data file " + fileName + " \n");
     }
-
 
     gF.initialize(xPanels,xMin,xMax);
 
     double x;
     for(long i = 0;  i <= xPanels; i++)
     {
-	rValue = fscanf(dataFile,"%lf %lf ",&x,&gF(i)) != 2 ? 1 : rValue;
+	errFlag = (fscanf(dataFile,"%lf %lf ",&x,&gF(i)) != 2 ) || errFlag;
     }
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from gnuplot data file " + fileName + " \n");
     }
@@ -388,29 +387,28 @@ void outputToDataFile(const GridFunction1d& gF, const std::string& fileName, con
 
 void inputFromDataFile(GridFunction1d& gF, FILE* dataFile, std::string fileName = "")
 {
-	size_t rValue = 0;
+	bool errFlag = false;
 
     long xPanels;
     double xMin; double xMax;
 
-    rValue = fscanf(dataFile,"%ld", &xPanels) != 1 ? 1 : rValue;
+    errFlag = (fscanf(dataFile,"%ld", &xPanels) != 1 ) || errFlag;
 
-    rValue = (xPanels <= 0) ? 1 : rValue;
+    errFlag = (xPanels <= 0) || errFlag;
 
-    rValue = fscanf(dataFile,"%lf",&xMin) != 1 ? 1 : rValue;
-	rValue = fscanf(dataFile,"%lf",&xMax) != 1 ? 1 : rValue;
+    errFlag = (fscanf(dataFile,"%lf",&xMin) != 1 ) || errFlag;
+	errFlag = (fscanf(dataFile,"%lf",&xMax) != 1 ) || errFlag;
 
-	rValue = (xMax < xMin) ? 1 : rValue;
-
+	errFlag = (xMax < xMin) || errFlag;
 
     gF.initialize(xPanels,xMin,xMax);
 
     for(long i = 0; i <= xPanels; i++)
     {
-    rValue = fscanf(dataFile,"%lf",&gF(i)) != 1 ? 1 : rValue;
+    errFlag = (fscanf(dataFile,"%lf",&gF(i)) != 1 ) || errFlag;
     }
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from file " + fileName + " \n");
     }
@@ -480,7 +478,8 @@ void inputFromBinaryDataFile(GridFunction1d& gF, const std::string& fileName)
 
 void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fileName = "")
 {
-	size_t rValue;
+	bool errFlag = false;
+
     size_t dataSize;
 
     long    xPanels;
@@ -489,18 +488,16 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fil
 
 	std::int64_t xPanels64;
 
-	rValue = 0;
-
-	rValue  = fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ? 1 : rValue;
+	errFlag = (fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
 	xPanels = (long)xPanels64;
 
-	rValue = fread(&xMin,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
-	rValue = fread(&xMax,  sizeof(double), 1, dataFile) != 1 ? 1 : rValue;
+	errFlag = (fread(&xMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&xMax,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 
-    rValue = (xMax < xMin) ? 1 : rValue;
-	rValue = (xPanels <= 0) ? 1 : rValue;
+    errFlag = (xMax < xMin)  || errFlag;
+	errFlag = (xPanels <= 0) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from file " + fileName + " \n");
     }
@@ -511,9 +508,9 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fil
 
 	dataSize = xPanels+1;
 
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
+	errFlag = (fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nSCC::GridFunction1d could not be initialized from file " + fileName + " \n");
     }
@@ -523,17 +520,18 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fil
 
 void inputValuesFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fileName = "")
 {
-	size_t rValue = 0;
+	bool errFlag = false;
+
     size_t dataSize;
 
     long xPanels = gF.getXpanelCount();
 
-    rValue = (xPanels <= 0) ? 1 : rValue;
+    errFlag = (xPanels <= 0) || errFlag;
 
 	dataSize = xPanels+1;
-	rValue = fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ? 1 : rValue;
+	errFlag = (fread(gF.getDataPointer(),  sizeof(double), dataSize, dataFile) != dataSize ) || errFlag;
 
-    if(rValue == 1)
+    if(errFlag)
     {
     throw std::runtime_error("\nValues from SCC::GridFunction1d could not be read from file " + fileName + " \n");
     }

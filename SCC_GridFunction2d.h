@@ -375,7 +375,7 @@ void clearYperiodicity()
 
 virtual long getDimension() const
 {
-	long dimension;
+	long dimension = DoubleVector2d::getDimension();
 
     if(not XYperiodicityFlag)
     {
