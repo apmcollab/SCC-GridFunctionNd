@@ -79,6 +79,27 @@ class  GridFunction3dUtility
 public :
 
 
+GridFunction3dUtility()
+{
+	vtkThresholdMagnitude = -1.0;
+}
+
+GridFunction3dUtility(const GridFunction3dUtility& G)
+{
+	vtkThresholdMagnitude = G.vtkThresholdMagnitude;
+}
+
+void setVTKthreshold(double vtkThresholdMagnitude)
+{
+	this->vtkThresholdMagnitude = vtkThresholdMagnitude;
+}
+
+void clearVTKthreshold()
+{
+	this->vtkThresholdMagnitude = -1.0;
+}
+
+
 void outputDataToVTKfile(const GridFunction3d& gridFun, const std::string& fileName, const std::string& dataLabel)
 {
     FILE* dataFile = 0;
@@ -116,14 +137,14 @@ void outputDataToVTKfile(const GridFunction3d& gridFun, const std::string& fileN
     for(i = 0; i < mPt; i++)
     {
     xPos = i*hx + a;
-    fprintf(dataFile, "%10.5e ",xPos);
+    fprintf(dataFile, "%.17e  ",xPos);
     }
     fprintf(dataFile, "\n");
     fprintf(dataFile, "Y_COORDINATES %ld float \n",nPt);
     for(j = 0; j < nPt; j++)
     {
     yPos = j*hy + c;
-    fprintf(dataFile, "%10.5e ",yPos);
+    fprintf(dataFile, "%.17e  ",yPos);
     }
     fprintf(dataFile, "\n");
 
@@ -131,20 +152,24 @@ void outputDataToVTKfile(const GridFunction3d& gridFun, const std::string& fileN
     for(k = 0; k < pPt; k++)
     {
     zPos = k*hz + e;
-    fprintf(dataFile, "%10.5e ",zPos);
+    fprintf(dataFile, "%.17e  ",zPos);
     }
     fprintf(dataFile, "\n");
 
     fprintf(dataFile, "POINT_DATA %ld\n",dataCount);
     fprintf(dataFile, "SCALARS %s float\n",dataLabel.c_str());
     fprintf(dataFile, "LOOKUP_TABLE default\n");
+
+    double value;
+
     for(k = 0; k <  pPt; k++)
     {
     for(j = 0; j < nPt; j++)
     {
     for(i = 0; i < mPt; i++)
     {
-    fprintf(dataFile, "%15.8e ",gridFun.Values(i,j,k));
+    value = (std::abs(gridFun.Values(i,j,k)) > vtkThresholdMagnitude) ? gridFun.Values(i,j,k) : 0.0;
+    fprintf(dataFile, "%.17e ",value);
     }
     fprintf(dataFile, "\n");
     }}
@@ -250,14 +275,14 @@ std::string scalingCoord, double scalingValue)
     for(i = 0; i < mPt; i++)
     {
     xPos = i*hx*xScalingFactor + a*xScalingFactor;
-    fprintf(dataFile, "%10.5e ",xPos);
+    fprintf(dataFile, "%.17e  ",xPos);
     }
     fprintf(dataFile, "\n");
     fprintf(dataFile, "Y_COORDINATES %ld float \n",nPt);
     for(j = 0; j < nPt; j++)
     {
     yPos = j*hy*yScalingFactor + c*yScalingFactor;
-    fprintf(dataFile, "%10.5e ",yPos);
+    fprintf(dataFile, "%.17e  ",yPos);
     }
     fprintf(dataFile, "\n");
 
@@ -265,20 +290,24 @@ std::string scalingCoord, double scalingValue)
     for(k = 0; k < pPt; k++)
     {
     zPos = k*hz*zScalingFactor + e*zScalingFactor;
-    fprintf(dataFile, "%10.5e ",zPos);
+    fprintf(dataFile, "%.17e  ",zPos);
     }
     fprintf(dataFile, "\n");
 
     fprintf(dataFile, "POINT_DATA %ld\n",dataCount);
     fprintf(dataFile, "SCALARS %s float\n",dataLabel.c_str());
     fprintf(dataFile, "LOOKUP_TABLE default\n");
+
+    double value;
+
     for(k = 0; k <  pPt; k++)
     {
     for(j = 0; j < nPt; j++)
     {
     for(i = 0; i < mPt; i++)
     {
-    fprintf(dataFile, "%15.8e ",gridFun.Values(i,j,k));
+    value = (std::abs(gridFun.Values(i,j,k)) > vtkThresholdMagnitude) ? gridFun.Values(i,j,k) : 0.0;
+    fprintf(dataFile, "%.17e ",value);
     }
     fprintf(dataFile, "\n");
     }}
@@ -339,12 +368,12 @@ void outputToDataFile(const GridFunction3d& gF, const std::string& fileName, con
     fprintf(dataFile,"%ld \n",    xPanels);
 	fprintf(dataFile,"%ld \n",    yPanels);
 	fprintf(dataFile,"%ld \n",    zPanels);
-    fprintf(dataFile,"%20.15e \n",xMin);
-	fprintf(dataFile,"%20.15e \n",xMax);
-	fprintf(dataFile,"%20.15e \n",yMin);
-	fprintf(dataFile,"%20.15e \n",yMax);
-    fprintf(dataFile,"%20.15e \n",zMin);
-	fprintf(dataFile,"%20.15e \n",zMax);
+    fprintf(dataFile,"%.17e  \n",xMin);
+	fprintf(dataFile,"%.17e  \n",xMax);
+	fprintf(dataFile,"%.17e  \n",yMin);
+	fprintf(dataFile,"%.17e  \n",yMax);
+    fprintf(dataFile,"%.17e  \n",zMin);
+	fprintf(dataFile,"%.17e  \n",zMax);
 
     for(long i = 0; i <= xPanels; i++)
     {
@@ -622,7 +651,10 @@ void outputToBinaryDataFile(const GridFunction3d& gF, const std::string& fileNam
     fclose(dataFile);
 }
 
-
+//////////////////////////////////////////////////////////////////
+//           Data members
+/////////////////////////////////////////////////////////////////
+	double vtkThresholdMagnitude;
 };
 }
 
