@@ -509,7 +509,7 @@ GridFunction3d* newDuplicate() const
     return Mptr;
 }
 
-bool isNull()
+bool isNull() const
 {
 if(dataPtr == nullptr) return true;
 return false;
