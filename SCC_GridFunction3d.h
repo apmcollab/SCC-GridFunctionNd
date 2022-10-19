@@ -1510,6 +1510,41 @@ void enforceXYperiodicity()
     }}
 }
 
+//
+// Enforces periodicity in the x-y coordinate directions by
+// averaging edge values
+
+void enforceXYperiodicityAveraging()
+{
+	XYperiodicityFlag = true;
+	if(this->isNull()){return;}
+
+    long i; long j; long k;
+
+    double avgVal;
+
+    i = xPanels;
+
+    for(j = 0; j <= yPanels; j++)
+    {
+    for(k = 0; k <= zPanels; k++)
+    {
+     avgVal = 0.5*(Values(i,j,k) + Values(0,j,k));
+     Values(i,j,k) = avgVal;
+     Values(0,j,k) = avgVal;
+    }}
+
+    j = yPanels;
+    for(i = 0; i <= xPanels; i++)
+    {
+    for(k = 0; k <= zPanels; k++)
+    {
+    avgVal = 0.5*(Values(i,j,k) + Values(i,0,k));
+    Values(i,j,k) = avgVal;
+    Values(i,0,k) = avgVal;
+    }}
+}
+
 //  Returns true if the input grid function is structurally identical,
 //  e.g. a coincident computational domain and mesh size
 //
