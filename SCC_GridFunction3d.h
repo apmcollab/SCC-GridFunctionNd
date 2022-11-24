@@ -708,7 +708,7 @@ void zeroNegativePart()
 //
 using DoubleVector3d::dot;
 
-double dot(const GridFunction3d& V) const
+virtual double dot(const GridFunction3d& V) const
 {
 	return scaledDot(V);
 }
@@ -717,7 +717,7 @@ double dot(const GridFunction3d& V) const
 //           (Trapezoidal Method)
 //
 
-double scaledDot(const GridFunction3d& V) const
+virtual double scaledDot(const GridFunction3d& V) const
 {
     double dotVal = 0.0;
 

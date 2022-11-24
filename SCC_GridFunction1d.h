@@ -481,7 +481,7 @@ void zeroNegativePart()
 //
 using DoubleVector1d::dot;
     
-double dot(const GridFunction1d& V) const
+virtual double dot(const GridFunction1d& V) const
 {
 	return scaledDot(V);
 }
@@ -491,7 +491,7 @@ double dot(const GridFunction1d& V) const
 // Trapezoidal approximation of the integral
 //
 
-double scaledDot(const GridFunction1d& V) const
+virtual double scaledDot(const GridFunction1d& V) const
 {
     double intValue  = 0.0;
     long  i;

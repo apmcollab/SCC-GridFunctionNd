@@ -685,13 +685,13 @@ void zeroNegativePart()
 //
 using DoubleVector2d::dot;
     
-double dot(const GridFunction2d& V) const
+virtual double dot(const GridFunction2d& V) const
 {
 	return scaledDot(V);
 }
 
 
-double scaledDot(const GridFunction2d& V) const
+virtual double scaledDot(const GridFunction2d& V) const
 {
     double dotVal = 0.0;
 
