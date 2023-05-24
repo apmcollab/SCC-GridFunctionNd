@@ -87,6 +87,7 @@ GridFunction3d() : DoubleVector3d()
 
     this->XYperiodicityFlag  = false;
     this->XYZperiodicityFlag = false;
+    this->dirichletDimensionFlag  = false;
 }
 
 GridFunction3d(const GridFunction3d& G) : DoubleVector3d(G)
@@ -108,6 +109,7 @@ GridFunction3d(const GridFunction3d& G) : DoubleVector3d(G)
 
     this->XYperiodicityFlag  = G.XYperiodicityFlag;
     this->XYZperiodicityFlag = G.XYZperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 
@@ -131,6 +133,7 @@ GridFunction3d(DoubleVector3d&& G) : DoubleVector3d((DoubleVector3d&&)G)
 
     this->XYperiodicityFlag  = false;
     this->XYZperiodicityFlag = false;
+    this->dirichletDimensionFlag  = false;
 }
 
 
@@ -156,6 +159,7 @@ GridFunction3d(long xPanels, double hx, long yPanels, double hy, long zPanels, d
 
     this->XYperiodicityFlag  = false;
     this->XYZperiodicityFlag = false;
+    this->dirichletDimensionFlag  = false;
 }
 
 
@@ -181,6 +185,7 @@ GridFunction3d(long xPanels, double xMin, double xMax, long yPanels, double yMin
 
     this->XYperiodicityFlag  = false;
     this->XYZperiodicityFlag = false;
+    this->dirichletDimensionFlag  = false;
 }
 
 
@@ -203,6 +208,7 @@ GridFunction3d(GridFunction3d&& G) : DoubleVector3d((DoubleVector3d&&)G)
 
     this->XYperiodicityFlag  = G.XYperiodicityFlag;
     this->XYZperiodicityFlag = G.XYZperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 virtual ~GridFunction3d(){}
@@ -233,6 +239,7 @@ if(this->dataPtr == nullptr)
 
     this->XYperiodicityFlag  = G.XYperiodicityFlag;
     this->XYZperiodicityFlag = G.XYZperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 // Propagate values
@@ -264,6 +271,10 @@ if(this->dataPtr == nullptr)
     this->yMax = G.yMax;
     this->zMin = G.zMin;
     this->zMax = G.zMax;
+
+    this->XYperiodicityFlag       = G.XYperiodicityFlag;
+    this->XYZperiodicityFlag      = G.XYZperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 // Propagate values
@@ -560,6 +571,21 @@ void clearXYperiodicity()
 	XYperiodicityFlag = false;
 }
 
+void setDirichletDimensionFlag(bool val = true)
+{
+     dirichletDimensionFlag = val;
+     if(val)
+     {
+     XYperiodicityFlag    = false;
+     XYZperiodicityFlag   = false;
+     }
+}
+
+void clearDirichletDimensionFlag()
+{
+	 dirichletDimensionFlag = false;
+}
+
 /*!  Returns the size of the number of independent values
      associated with the grid function, i.e. the dimension
      corresponding to the vector of independent function
@@ -570,16 +596,19 @@ void clearXYperiodicity()
 
 virtual long getDimension() const
 {
-	long dimension;
+	long dimension = DoubleVector3d::getDimension();
 
-    if(not (XYperiodicityFlag || XYZperiodicityFlag))
+    if(XYperiodicityFlag)
     {
-    	dimension = DoubleVector3d::getDimension();
+    dimension = (index1Size-1)*(index2Size-1)*(index3Size);
     }
-    else
+    else if(XYZperiodicityFlag)
     {
-    	if(XYperiodicityFlag)  {dimension = (index1Size-1)*(index2Size-1)*(index3Size);}
-    	if(XYZperiodicityFlag) {dimension = (index1Size-1)*(index2Size-1)*(index3Size-1);}
+    dimension = (index1Size-1)*(index2Size-1)*(index3Size-1);
+    }
+    else if(dirichletDimensionFlag)
+    {
+    	dimension = (index1Size-2)*(index2Size-2)*(index3Size-2);
     }
 
     return dimension;
@@ -1593,9 +1622,10 @@ bool isCoincident(const GridFunction3d& V)
     double hy;
     double hz;
 
-    bool  XYperiodicityFlag;     // indicates periodicity in the XY direction
-    bool XYZperiodicityFlag;     // indicates periodicity in the XYZ direction
-
+    bool  XYperiodicityFlag;       // indicates periodicity in the XY direction
+    bool XYZperiodicityFlag;       // indicates periodicity in the XYZ direction
+    bool dirichletDimensionFlag;   // used so getDimension() returns the number
+                                   // of unknowns excluding boundary grid points.
 //###################################################################
 //          Values Access (Alternative to operator())
 //###################################################################

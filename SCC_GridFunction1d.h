@@ -73,7 +73,8 @@ GridFunction1d() : DoubleVector1d()
 	this->xPanels = 0;
 	this->hx      = 0.0;
 
-	this->XperiodicityFlag = false;
+	this->XperiodicityFlag         = false;
+	this->dirichletDimensionFlag   = false;
 }
 
 GridFunction1d(const GridFunction1d& G) : DoubleVector1d(G)
@@ -83,7 +84,8 @@ GridFunction1d(const GridFunction1d& G) : DoubleVector1d(G)
 	this->xPanels = G.xPanels;
 	this->hx      = G.hx;
 
-    this->XperiodicityFlag = G.XperiodicityFlag;
+    this->XperiodicityFlag        = G.XperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 GridFunction1d(DoubleVector1d&& G) : DoubleVector1d((DoubleVector1d&&)G)
@@ -93,7 +95,8 @@ GridFunction1d(DoubleVector1d&& G) : DoubleVector1d((DoubleVector1d&&)G)
 	this->xPanels = 0;
 	this->hx      = 0.0;
 
-	this->XperiodicityFlag = false;
+	this->XperiodicityFlag         = false;
+	this->dirichletDimensionFlag   = false;
 }
 
 
@@ -105,7 +108,8 @@ GridFunction1d(long xPanels, double hx) : DoubleVector1d(xPanels+1)
     this->xMax    =  (xPanels*hx)/2.0;
 	this->setToValue(0.0);
 
-	this->XperiodicityFlag = false;
+	this->XperiodicityFlag        = false;
+	this->dirichletDimensionFlag   = false;
 }
 
 
@@ -117,7 +121,8 @@ GridFunction1d(long xPanels, double xMin, double xMax) : DoubleVector1d(xPanels+
 	this->hx      = (xMax-xMin)/(double)xPanels;
 	this->setToValue(0.0);
 
-	this->XperiodicityFlag = false;
+	this->XperiodicityFlag         = false;
+	this->dirichletDimensionFlag   = false;
 }
 
 
@@ -128,7 +133,8 @@ GridFunction1d(GridFunction1d&& G) : DoubleVector1d((DoubleVector1d&&)G)
 	this->xPanels = G.xPanels;
 	this->hx      = G.hx;
 
-	this->XperiodicityFlag = G.XperiodicityFlag;
+	this->XperiodicityFlag         = G.XperiodicityFlag;
+	this->dirichletDimensionFlag   = G.dirichletDimensionFlag;
 }
 
 virtual ~GridFunction1d(){}
@@ -143,7 +149,8 @@ void initialize()
 	xPanels = 0;
 	hx      = 0.0;
 
-	XperiodicityFlag = false;
+	XperiodicityFlag         = false;
+    dirichletDimensionFlag   = false;
 }
 
 void initialize(const GridFunction1d& G)
@@ -154,7 +161,8 @@ void initialize(const GridFunction1d& G)
 	xPanels = G.xPanels;
 	hx      = G.hx;
 
-	XperiodicityFlag = G.XperiodicityFlag;
+	XperiodicityFlag         = G.XperiodicityFlag;
+	dirichletDimensionFlag   = G.dirichletDimensionFlag;
 }
 
 void initialize(long xPanels, double hx)
@@ -165,7 +173,8 @@ void initialize(long xPanels, double hx)
 	this->xPanels = xPanels;
 	this->hx      = hx;
 
-	this->XperiodicityFlag = false;
+	this->XperiodicityFlag         = false;
+	this->dirichletDimensionFlag   = false;
 }
 
 void initialize(long xPanels, double xMin, double xMax)
@@ -176,7 +185,8 @@ void initialize(long xPanels, double xMin, double xMax)
 	this->xPanels = xPanels;
 	this->hx      = (xMax-xMin)/(double)xPanels;
 
-	this->XperiodicityFlag = false;
+	this->XperiodicityFlag         = false;
+    this->dirichletDimensionFlag   = false;
 }
 
 GridFunction1d* newDuplicate() const
@@ -229,6 +239,19 @@ void clearPeriodicity()
 }
 
 
+void setDirichletDimensionFlag(bool val = true)
+{
+     dirichletDimensionFlag = val;
+     if(val)
+     {XperiodicityFlag = false;}
+}
+
+void clearDirichletDimensionFlag()
+{
+	 dirichletDimensionFlag = false;
+}
+
+
 void setXperiodicity(bool val = true)
 {
 	if(val)
@@ -258,6 +281,10 @@ virtual long getDimension() const
     if(XperiodicityFlag)
     {
     	dimension -=1;
+    }
+    if(dirichletDimensionFlag)
+    {
+         dimension -= 2;
     }
     return dimension;
 }
@@ -308,6 +335,9 @@ if(this->dataPtr == nullptr)
 	xMax    = G.xMax;
 	xPanels = G.xPanels;
 	hx      = G.hx;
+
+    XperiodicityFlag         = G.XperiodicityFlag;
+	dirichletDimensionFlag   = G.dirichletDimensionFlag;
 }
 
 // Propagate values
@@ -329,6 +359,9 @@ if(this->dataPtr == nullptr)
 	xMax    = G.xMax;
 	xPanels = G.xPanels;
 	hx      = G.hx;
+
+    XperiodicityFlag         = G.XperiodicityFlag;
+	dirichletDimensionFlag   = G.dirichletDimensionFlag;
 }
 
 // Propagate values
@@ -631,6 +664,8 @@ void enforcePeriodicity()
     Values(xPanels) = Values(0);
 }
 
+
+
 //  Returns true if the input grid function is structurally identical,
 //  e.g. a coincident computational domain and mesh size
 //
@@ -664,11 +699,12 @@ bool isCoincident(const GridFunction1d& V)
 //
 //  Grid Geometry
 //
-    double xMin; double xMax;   // Computational Region is [xMin, xMax]
-    long   xPanels;             // Number of panels
-    double hx;                  // mesh width
+    double xMin; double xMax;      // Computational Region is [xMin, xMax]
+    long   xPanels;                // Number of panels
+    double hx;                     // mesh width
 
-    bool XperiodicityFlag;
+    bool   XperiodicityFlag;
+    bool   dirichletDimensionFlag; // Dimension of unknowns that excludes boundary values
 
 protected :
 

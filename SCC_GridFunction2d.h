@@ -78,6 +78,7 @@ GridFunction2d() : DoubleVector2d()
     this->XYperiodicityFlag = false;
     this->XperiodicityFlag  = false;
     this->YperiodicityFlag  = false;
+    this->dirichletDimensionFlag  = false;
 }
 
 GridFunction2d(const GridFunction2d& G) : DoubleVector2d(G)
@@ -93,9 +94,10 @@ GridFunction2d(const GridFunction2d& G) : DoubleVector2d(G)
     this->yMin = G.yMin;
     this->yMax = G.yMax;
 
-    this->XYperiodicityFlag = G.XYperiodicityFlag;
-    this->XperiodicityFlag  = G.XperiodicityFlag;
-    this->YperiodicityFlag  = G.YperiodicityFlag;
+    this->XYperiodicityFlag       = G.XYperiodicityFlag;
+    this->XperiodicityFlag        = G.XperiodicityFlag;
+    this->YperiodicityFlag        = G.YperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 
@@ -112,9 +114,10 @@ GridFunction2d(DoubleVector2d&& G) : DoubleVector2d((DoubleVector2d&&)G)
     this->yMin = 0.0;
     this->yMax = 1.0;
 
-    this->XYperiodicityFlag = false;
-    this->XperiodicityFlag  = false;
-    this->YperiodicityFlag  = false;
+    this->XYperiodicityFlag      = false;
+    this->XperiodicityFlag       = false;
+    this->YperiodicityFlag       = false;
+    this->dirichletDimensionFlag = false;
 }
 
 
@@ -132,9 +135,10 @@ GridFunction2d(long xPanels, double hx, long yPanels, double hy)
     this->yMin = -(yPanels*hy)/2.0;
     this->yMax =  (yPanels*hy)/2.0;
 
-    this->XYperiodicityFlag = false;
-    this->XperiodicityFlag  = false;
-    this->YperiodicityFlag  = false;
+    this->XYperiodicityFlag       = false;
+    this->XperiodicityFlag        = false;
+    this->YperiodicityFlag        = false;
+    this->dirichletDimensionFlag  = false;
 	this->setToValue(0.0);
 }
 
@@ -153,9 +157,10 @@ GridFunction2d(long xPanels, double xMin, double xMax, long yPanels, double yMin
     this->hx     = (xMax-xMin)/(double)(xPanels);
     this->hy     = (yMax-yMin)/(double)(yPanels);
 
-    this->XYperiodicityFlag = false;
-    this->XperiodicityFlag  = false;
-    this->YperiodicityFlag  = false;
+    this->XYperiodicityFlag       = false;
+    this->XperiodicityFlag        = false;
+    this->YperiodicityFlag        = false;
+    this->dirichletDimensionFlag  = false;
 	this->setToValue(0.0);
 }
 
@@ -173,9 +178,10 @@ GridFunction2d(GridFunction2d&& G) : DoubleVector2d((DoubleVector2d&&)G)
     this->yMin = G.yMin;
     this->yMax = G.yMax;
 
-    this->XYperiodicityFlag = G.XYperiodicityFlag;
-    this->XperiodicityFlag  = G.XperiodicityFlag;
-    this->YperiodicityFlag  = G.YperiodicityFlag;
+    this->XYperiodicityFlag       = G.XYperiodicityFlag;
+    this->XperiodicityFlag        = G.XperiodicityFlag;
+    this->YperiodicityFlag        = G.YperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 virtual ~GridFunction2d(){}
@@ -196,9 +202,10 @@ void initialize()
     this->yMin = 0.0;
     this->yMax = 1.0;
 
-    this->XYperiodicityFlag = false;
-    this->XperiodicityFlag  = false;
-    this->YperiodicityFlag  = false;
+    this->XYperiodicityFlag       = false;
+    this->XperiodicityFlag        = false;
+    this->YperiodicityFlag        = false;
+    this->dirichletDimensionFlag  = false;
 }
 
 void initialize(const GridFunction2d& G)
@@ -215,9 +222,10 @@ void initialize(const GridFunction2d& G)
     this->yMin = G.yMin;
     this->yMax = G.yMax;
 
-    this->XYperiodicityFlag = G.XYperiodicityFlag;
-    this->XperiodicityFlag  = G.XperiodicityFlag;
-    this->YperiodicityFlag  = G.YperiodicityFlag;
+    this->XYperiodicityFlag       = G.XYperiodicityFlag;
+    this->XperiodicityFlag        = G.XperiodicityFlag;
+    this->YperiodicityFlag        = G.YperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 
 }
 
@@ -236,9 +244,10 @@ void initialize(long xPanels, double hx, long yPanels, double hy)
     this->yMin = -(yPanels*hy)/2.0;
     this->yMax =  (yPanels*hy)/2.0;
 
-    this->XYperiodicityFlag = false;
-    this->XperiodicityFlag  = false;
-    this->YperiodicityFlag  = false;
+    this->XYperiodicityFlag       = false;
+    this->XperiodicityFlag        = false;
+    this->YperiodicityFlag        = false;
+    this->dirichletDimensionFlag  = false;
 
 	this->setToValue(0.0);
 }
@@ -258,9 +267,10 @@ void initialize(long xPanels, double xMin, double xMax, long yPanels, double yMi
     this->hx     = (xMax-xMin)/(double)(xPanels);
     this->hy     = (yMax-yMin)/(double)(yPanels);
 
-    this->XYperiodicityFlag = false;
-    this->XperiodicityFlag  = false;
-    this->YperiodicityFlag  = false;
+    this->XYperiodicityFlag       = false;
+    this->XperiodicityFlag        = false;
+    this->YperiodicityFlag        = false;
+    this->dirichletDimensionFlag  = false;
 
 	this->setToValue(0.0);
 }
@@ -365,6 +375,24 @@ void clearYperiodicity()
 }
 
 
+void setDirichletDimensionFlag(bool val = true)
+{
+     dirichletDimensionFlag = val;
+     if(val)
+     {
+     XperiodicityFlag  = false;
+     YperiodicityFlag  = false;
+     XYperiodicityFlag = false;
+     }
+}
+
+void clearDirichletDimensionFlag()
+{
+	 dirichletDimensionFlag = false;
+}
+
+
+
 /*!  Returns the size of the number of independent values
      associated with the grid function, i.e. the dimension
      corresponding to the vector of independent function
@@ -377,11 +405,7 @@ virtual long getDimension() const
 {
 	long dimension = DoubleVector2d::getDimension();
 
-    if(not XYperiodicityFlag)
-    {
-    	dimension = DoubleVector2d::getDimension();
-    }
-    else if(XYperiodicityFlag)
+    if(XYperiodicityFlag)
     {
     	dimension = (index1Size-1)*(index2Size-1);
     }
@@ -392,6 +416,10 @@ virtual long getDimension() const
     else if(YperiodicityFlag)
     {
     	dimension = (index1Size)*(index2Size-1);
+    }
+    else if(dirichletDimensionFlag)
+    {
+    	dimension = (index1Size-2)*(index2Size-2);
     }
 
     return dimension;
@@ -459,7 +487,10 @@ if(this->dataPtr == nullptr)
     this->yMin = G.yMin;
     this->yMax = G.yMax;
 
-    this->XYperiodicityFlag = G.XYperiodicityFlag;
+    this->XYperiodicityFlag       = G.XYperiodicityFlag;
+    this->XperiodicityFlag        = G.XperiodicityFlag;
+    this->YperiodicityFlag        = G.YperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 // Propagate values
@@ -488,7 +519,10 @@ if(this->dataPtr == nullptr)
     this->yMin = G.yMin;
     this->yMax = G.yMax;
 
-    this->XYperiodicityFlag = G.XYperiodicityFlag;
+    this->XYperiodicityFlag       = G.XYperiodicityFlag;
+    this->XperiodicityFlag        = G.XperiodicityFlag;
+    this->YperiodicityFlag        = G.YperiodicityFlag;
+    this->dirichletDimensionFlag  = G.dirichletDimensionFlag;
 }
 
 // Propagate values
@@ -1115,6 +1149,9 @@ double hy;
 bool XYperiodicityFlag;     // indicates periodicity in the XY direction
 bool XperiodicityFlag;      // indicates periodicity in the X direction
 bool YperiodicityFlag;      // indicates periodicity in the Y direction
+
+bool dirichletDimensionFlag; // used so getDimension() returns the number
+                             // of unknowns excluding boundary grid points.
 
 //###################################################################
 //                     Error Checking
