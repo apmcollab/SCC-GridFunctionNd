@@ -426,8 +426,8 @@ void outputToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
     long xPanels = gF.getXpanelCount();
     long yPanels = gF.getYpanelCount();
 
-    std::int64_t xPanels64 = (std::int64_t) xPanels;
-    std::int64_t yPanels64 = (std::int64_t) yPanels;
+    int64_t xPanels64 = (int64_t) xPanels;
+    int64_t yPanels64 = (int64_t) yPanels;
 
     double xMin  = gF.getXmin();
 	double xMax  = gF.getXmax();
@@ -440,8 +440,8 @@ void outputToBinaryDataFile(const GridFunction2d& gF, FILE* dataFile)
 	//  alternate storage sizes for int's and long's
 	//
 
-    fwrite(&xPanels64,  sizeof(std::int64_t), 1, dataFile);
-	fwrite(&yPanels64,  sizeof(std::int64_t), 1, dataFile);
+    fwrite(&xPanels64,  sizeof(int64_t), 1, dataFile);
+	fwrite(&yPanels64,  sizeof(int64_t), 1, dataFile);
 	fwrite(&xMin,  sizeof(double), 1, dataFile);
 	fwrite(&xMax,  sizeof(double), 1, dataFile);
 	fwrite(&yMin,  sizeof(double), 1, dataFile);
@@ -483,11 +483,11 @@ void inputFromBinaryDataFile(GridFunction2d& gF, FILE* dataFile, std::string fil
     double xMin; double yMin;
     double xMax; double yMax;
 
-	std::int64_t xPanels64;
-	std::int64_t yPanels64;
+	int64_t xPanels64;
+	int64_t yPanels64;
 
-	errFlag = (fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1) || errFlag;
-	errFlag = (fread(&yPanels64,  sizeof(std::int64_t), 1, dataFile) != 1) || errFlag;
+	errFlag = (fread(&xPanels64,  sizeof(int64_t), 1, dataFile) != 1) || errFlag;
+	errFlag = (fread(&yPanels64,  sizeof(int64_t), 1, dataFile) != 1) || errFlag;
 	errFlag = (fread(&xMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 	errFlag = (fread(&xMax,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 	errFlag = (fread(&yMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;

@@ -461,9 +461,9 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
     long yPanels = gF.getYpanelCount();
     long zPanels = gF.getZpanelCount();
 
-    std::int64_t xPanels64 = (std::int64_t) xPanels;
-    std::int64_t yPanels64 = (std::int64_t) yPanels;
-    std::int64_t zPanels64 = (std::int64_t) zPanels;
+    int64_t xPanels64 = (int64_t) xPanels;
+    int64_t yPanels64 = (int64_t) yPanels;
+    int64_t zPanels64 = (int64_t) zPanels;
 
     double xMin  = gF.getXmin();
 	double xMax  = gF.getXmax();
@@ -478,9 +478,9 @@ void outputToBinaryDataFile(const GridFunction3d& gF, FILE* dataFile)
 	//  alternate storage sizes for int's and long's
 	//
 
-    fwrite(&xPanels64,  sizeof(std::int64_t), 1, dataFile);
-	fwrite(&yPanels64,  sizeof(std::int64_t), 1, dataFile);
-	fwrite(&zPanels64,  sizeof(std::int64_t), 1, dataFile);
+    fwrite(&xPanels64,  sizeof(int64_t), 1, dataFile);
+	fwrite(&yPanels64,  sizeof(int64_t), 1, dataFile);
+	fwrite(&zPanels64,  sizeof(int64_t), 1, dataFile);
 
 	fwrite(&xMin,  sizeof(double), 1, dataFile);
 	fwrite(&xMax,  sizeof(double), 1, dataFile);
@@ -542,15 +542,15 @@ void inputFromBinaryDataFile(GridFunction3d& gF, FILE* dataFile, std::string fil
     double xMin; double yMin; double zMin;
     double xMax; double yMax; double zMax;
 
-	std::int64_t xPanels64;
-	std::int64_t yPanels64;
-	std::int64_t zPanels64;
+	int64_t xPanels64;
+	int64_t yPanels64;
+	int64_t zPanels64;
 
 	bool errFlag = false;
 
-	errFlag = (fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
-	errFlag = (fread(&yPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
-	errFlag = (fread(&zPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&xPanels64,  sizeof(int64_t), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&yPanels64,  sizeof(int64_t), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&zPanels64,  sizeof(int64_t), 1, dataFile) != 1 ) || errFlag;
 
 	errFlag = (fread(&xMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
 	errFlag = (fread(&xMax,  sizeof(double), 1, dataFile) != 1 ) || errFlag;

@@ -436,7 +436,7 @@ void outputToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
     long dataSize;
 
     long         xPanels   = gF.getXpanelCount();
-    std::int64_t xPanels64 = (std::int64_t)xPanels;
+    int64_t xPanels64 = (int64_t)xPanels;
 
     double xMin  = gF.getXmin();
 	double xMax  = gF.getXmax();
@@ -446,7 +446,7 @@ void outputToBinaryDataFile(const GridFunction1d& gF, FILE* dataFile)
 	//  for integer values to avoid problems with machines with
 	//  alternate storage sizes for int's and long's
 	//
-    fwrite(&xPanels64,  sizeof(std::int64_t), 1, dataFile);
+    fwrite(&xPanels64,  sizeof(int64_t), 1, dataFile);
 	fwrite(&xMin,  sizeof(double), 1, dataFile);
 	fwrite(&xMax,  sizeof(double), 1, dataFile);
 
@@ -486,9 +486,9 @@ void inputFromBinaryDataFile(GridFunction1d& gF, FILE* dataFile, std::string fil
     double xMin;
     double xMax;
 
-	std::int64_t xPanels64;
+	int64_t xPanels64;
 
-	errFlag = (fread(&xPanels64,  sizeof(std::int64_t), 1, dataFile) != 1 ) || errFlag;
+	errFlag = (fread(&xPanels64,  sizeof(int64_t), 1, dataFile) != 1 ) || errFlag;
 	xPanels = (long)xPanels64;
 
 	errFlag = (fread(&xMin,  sizeof(double), 1, dataFile) != 1 ) || errFlag;
