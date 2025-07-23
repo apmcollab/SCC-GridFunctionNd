@@ -1459,8 +1459,6 @@ void setBoundaryValues(double value)
     Values(i,j,k) = value;
     }}
 
-//
-
     k = 0;
     for(i = 0; i <=  xPanels; i++)
     {
@@ -1478,6 +1476,106 @@ void setBoundaryValues(double value)
     }}
 }
 
+// Set specific coordinate boundary value
+
+void setXboundaryValues(double value)
+{
+	long i = 0;
+	for(long j = 0; j <= yPanels; j++)
+	{
+	for(long k = 0; k <= zPanels; k++)
+	{
+		Values(i,j,k) = value;
+	}}
+
+    i = xPanels;
+    for(long j = 0; j <= yPanels; j++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+     Values(i,j,k) = value;
+    }}
+}
+
+
+void setYboundaryValues(double value)
+{
+    long j = 0;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    Values(i,j,k) = value;
+    }}
+
+    j = yPanels;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    Values(i,j,k) = value;
+    }}
+}
+
+void setZboundaryValues(double value)
+{
+    long k = 0;
+    for(long i = 0; i <=  xPanels; i++)
+    {
+    for(long j = 0; j <=  yPanels; j++)
+    {
+    Values(i,j,k) = value;
+    }}
+
+    k = zPanels;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long j = 0; j <= yPanels; j++)
+    {
+    Values(i,j,k) = value;
+    }}
+}
+
+//
+// Convention used for enforcing periodicity :
+// setting maximal index value to 0 index value
+//
+
+void enforceXperiodicity()
+{
+    long i = xPanels;
+    for(long j = 0; j <= yPanels; j++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+     Values(i,j,k) = Values(0,j,k);
+    }}
+}
+
+
+void enforceYperiodicity()
+{
+    long j = yPanels;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long k = 0; k <= zPanels; k++)
+    {
+    Values(i,j,k) = Values(i,0,k);
+    }}
+}
+
+
+void enforceZperiodicity()
+{
+
+    long k = zPanels;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    for(long j = 0; j <= yPanels; j++)
+    {
+    Values(i,j,k) = Values(i,j,0);
+    }}
+}
 //
 // Enforces periodicity in all three x,y,z coordinate directions
 //
