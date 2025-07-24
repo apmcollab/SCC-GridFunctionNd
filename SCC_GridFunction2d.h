@@ -1037,6 +1037,46 @@ void setBoundaryValues(double value)
     }
 }
 
+// Set specific coordinate boundary value
+
+void setXboundaryValues(double value)
+{
+	long i = 0;
+	for(long j = 0; j <= yPanels; j++)
+	{
+		Values(i,j) = value;
+	}
+
+    i = xPanels;
+    for(long j = 0; j <= yPanels; j++)
+    {
+     Values(i,j) = value;
+    }
+}
+
+void setYboundaryValues(double value)
+{
+    long j = 0;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    Values(i,j) = value;
+    }
+
+    j = yPanels;
+    for(long i = 0; i <= xPanels; i++)
+    {
+    Values(i,j) = value;
+    }
+}
+
+
+
+//
+// Convention used for enforcing periodicity :
+// setting maximal index value to 0 index value
+//
+
+
 // Sets the periodicity flag and copies values
 // to enforce periodicity in both coordinate directions.
 //
